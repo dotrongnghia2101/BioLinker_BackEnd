@@ -29,13 +29,4 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Controller\" />
-    <Folder Include="Data\" />
-    <Folder Include="DTO\" />
-    <Folder Include="Enities\" />
-    <Folder Include="Service\" />
-    <Folder Include="Respository\" />
-  </ItemGroup>
-
 </Project>
