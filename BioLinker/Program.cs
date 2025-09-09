@@ -1,9 +1,10 @@
-using BioLinker.Data;
+﻿using BioLinker.Data;
 using BioLinker.DTO;
 using BioLinker.Enities;
 using BioLinker.Repository;
 using BioLinker.Respository;
 using BioLinker.Service;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -31,21 +32,92 @@ builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 //==================== CAU HINH REPOSITORY ====================
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-//==================== CAU HINH JWT ====================
+// ==================== CAU HINH AUTHENTICATION (JWT + FACEBOOK) ====================
+//builder.Services.AddAuthentication(options =>
+//{
+//    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme; // default la JWT
+//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+//})
+//.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+//{
+//    var jwtConfig = builder.Configuration.GetSection("Jwt");
+//    var key = Encoding.UTF8.GetBytes(jwtConfig["Key"]!);
+
+//    options.SaveToken = true;
+//    options.TokenValidationParameters = new TokenValidationParameters
+//    {
+//        ValidateIssuer = true,
+//        ValidateAudience = false,
+//        ValidateLifetime = true,
+//        ValidateIssuerSigningKey = true,
+//        ValidIssuer = jwtConfig["Issuer"],
+//        IssuerSigningKey = new SymmetricSecurityKey(key),
+//        RoleClaimType = ClaimTypes.Role
+//    };
+
+//    options.Events = new JwtBearerEvents
+//    {
+//        OnMessageReceived = context =>
+//        {
+//            var token = context.Request.Cookies["jwt"];
+//            if (!string.IsNullOrEmpty(token))
+//            {
+//                context.Token = token;
+//            }
+//            return Task.CompletedTask;
+//        }
+//    };
+//})
+//.AddCookie("Cookies") // them cookie de giu session khi login bang facebook
+//.AddFacebook("Facebook", options =>
+//{
+//    options.AppId = builder.Configuration["Authentication:Facebook:AppId"];
+//    options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
+//    options.CallbackPath = "/signin-facebook";
+//    options.SaveTokens = true;
+//    options.Scope.Add("email");
+//    options.Fields.Add("name");
+//    options.Fields.Add("email");
+//});
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    // Khi chưa xác định thì mặc định dùng JWT cho API
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+
+    // Nếu có challenge từ Facebook thì nó sẽ override
+    options.DefaultChallengeScheme = "Facebook";
 })
-.AddJwtBearer(options =>
+// Cookie (rất quan trọng cho OAuth correlation)
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, cookieOptions =>
 {
-    //doc key tu appsetting.json
+    cookieOptions.Cookie.Name = ".BioLinker.Auth";
+    cookieOptions.Cookie.HttpOnly = true;
+    //cookieOptions.Cookie.SameSite = SameSiteMode.None; // bắt buộc cho redirect OAuth
+    //cookieOptions.Cookie.SecurePolicy = CookieSecurePolicy.Always; // chỉ chạy HTTPS
+    cookieOptions.Cookie.SameSite = SameSiteMode.Lax;
+    cookieOptions.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+})
+// Facebook OAuth
+.AddFacebook("Facebook", options =>
+{
+    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; // phải chỉ rõ
+    options.AppId = builder.Configuration["Authentication:Facebook:AppId"];
+    options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
+    options.CallbackPath = "/signin-facebook"; // phải khớp Facebook Dev Console
+    options.SaveTokens = true;
+    options.Scope.Add("email");
+    options.Fields.Add("name");
+    options.Fields.Add("email");
+})
+// JWT cho API
+.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, jwtOptions =>
+{
     var jwtConfig = builder.Configuration.GetSection("Jwt");
     var key = Encoding.UTF8.GetBytes(jwtConfig["Key"]!);
 
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
+    jwtOptions.SaveToken = true;
+    jwtOptions.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = false,
@@ -56,10 +128,11 @@ builder.Services.AddAuthentication(options =>
         RoleClaimType = ClaimTypes.Role
     };
 
-    options.Events = new JwtBearerEvents
+    jwtOptions.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
         {
+            // Nếu token được lưu trong cookie "jwt"
             var token = context.Request.Cookies["jwt"];
             if (!string.IsNullOrEmpty(token))
             {
@@ -69,18 +142,24 @@ builder.Services.AddAuthentication(options =>
         }
     };
 });
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    options.MinimumSameSitePolicy = SameSiteMode.None;
+});
 
 //==================== CAU HINH CORS ==================== (cross-origin resource sharing)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:5285")
+        policy
+              .WithOrigins("https://localhost:7168", "https://biolinker.com") // domain duoc phep
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
     });
 });
+
 
 //==================== CAU HINH GOOGLE ==================== 
 builder.Services.Configure<GoogleAuthSettings>(
@@ -138,6 +217,8 @@ app.UseSwaggerUI(c =>
 app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();
+
+app.UseCookiePolicy();
 
 app.UseAuthentication();
 
