@@ -1,8 +1,10 @@
 ﻿using BioLinker.DTO;
 using BioLinker.Service;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BioLinker.Controllers.User
 {
@@ -83,6 +85,59 @@ namespace BioLinker.Controllers.User
                     message = "Google login failed: " + ex.Message
                 });
             }
+        }
+
+        //Controller/User/AuthController
+        //[HttpPost("login-facbook")]
+        //public  IActionResult FacebookLogin()
+        //{
+        //    // Redirect user sang Facebook để login
+        //    var props = new AuthenticationProperties
+        //    {
+        //        RedirectUri = Url.Action("FacebookCallback")
+        //    };
+        //    return Challenge(props, "Facebook");
+        //}
+
+        //[HttpGet("facebook-callback")]
+        //public async Task<IActionResult> FacebookCallback()
+        //{
+        //    var result = await HttpContext.AuthenticateAsync("Cookies");
+
+        //    if (!result.Succeeded)
+        //        return Unauthorized("Facebook login failed");
+
+        //    var claims = result.Principal!.Claims.ToDictionary(c => c.Type, c => c.Value);
+
+        //    return Ok(new
+        //    {
+        //        FacebookId = claims.GetValueOrDefault(ClaimTypes.NameIdentifier),
+        //        Name = claims.GetValueOrDefault(ClaimTypes.Name),
+        //        Email = claims.GetValueOrDefault(ClaimTypes.Email)
+        //    });
+        //}
+        [HttpGet("login-facebook")]
+        public IActionResult LoginFacebook()
+        {
+            var props = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action("FacebookResponse")
+            };
+            return Challenge(props, "Facebook");
+        }
+
+        [HttpGet("facebook-response")]
+        public async Task<IActionResult> FacebookResponse()
+        {
+            var result = await HttpContext.AuthenticateAsync("External");
+            if (!result.Succeeded)
+                return BadRequest("Facebook login failed");
+
+            return Ok(new
+            {
+                Name = result.Principal.Identity.Name,
+                Claims = result.Principal.Claims.Select(c => new { c.Type, c.Value })
+            });
         }
 
         //reset mat khau
