@@ -8,5 +8,9 @@
         public int? Views { get; set; }
         public int? Clicks { get; set; }
         public DateTime Date { get; set; }
+
+        // Navigation
+        public virtual Link? Link { get; set; }
+        public virtual BioPage? BioPage { get; set; }
     }
 }

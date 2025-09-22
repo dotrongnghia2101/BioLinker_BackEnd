@@ -7,5 +7,8 @@
         public string TextStyle { get; set; } = string.Empty;
         public string ButtonStyle { get; set; } = string.Empty;
         public string Color { get; set; } = string.Empty;
+
+        // Navigation
+        public virtual ICollection<BioPage> BioPages { get; set; } = new List<BioPage>();
     }
 }

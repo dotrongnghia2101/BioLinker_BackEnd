@@ -9,5 +9,9 @@
         public string? SubTitle { get; set; } = string.Empty;
         public int? Position { get; set; }
         public bool? Visible { get; set; }
+
+        // Navigation
+        public virtual BioPage? BioPage { get; set; }
+
     }
 }

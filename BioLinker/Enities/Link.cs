@@ -12,5 +12,10 @@
         public int? ClickCount { get; set; }
         public string? Platform { get; set; } = string.Empty;
         public string? LinkType { get; set; } = string.Empty;
+
+        // Navigation
+        public virtual BioPage? BioPage { get; set; }
+        public virtual ICollection<AnalyticLink> AnalyticLinks { get; set; } = new List<AnalyticLink>();
+        public virtual StaticLink? StaticLink { get; set; }
     }
 }

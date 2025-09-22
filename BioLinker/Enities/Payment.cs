@@ -9,5 +9,10 @@
         public string? Method { get; set; } = string.Empty;
         public string? Status { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
+
+
+        // Navigation
+        public virtual User? User { get; set; }
+        public virtual SubscriptionPlan? Plan { get; set; }
     }
 }

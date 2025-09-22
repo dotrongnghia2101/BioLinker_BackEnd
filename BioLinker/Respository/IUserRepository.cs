@@ -6,6 +6,7 @@ namespace BioLinker.Respository
     {
         Task<User?> GetByEmailAsync(string email);
         Task<IEnumerable<User>> GetAllUsersAsync();
+        Task<User?> GetByIdAsync(string userId);
         Task AddUserAsync(User user);
         Task UpdateAsync(User user);
     }
