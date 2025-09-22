@@ -28,6 +28,11 @@ namespace BioLinker.Repository
             return await _context.Users.FirstOrDefaultAsync(x => x.Email == email);
         }
 
+        public async Task<User?> GetByIdAsync(string userId)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+        }
+
         public async Task UpdateAsync(User user)
         {
             _context.Users.Update(user);

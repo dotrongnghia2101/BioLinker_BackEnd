@@ -13,13 +13,15 @@ namespace BioLinker.Service
         private readonly JwtService _jwtService;
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly IConfiguration _configuration;
+        private readonly IRoleRepository _roleRepository;
 
-        public AuthService(IUserRepository userRepository, JwtService jwtService, IPasswordHasher<User> passwordHasher, IConfiguration configuration)
+        public AuthService(IUserRepository userRepository, JwtService jwtService, IPasswordHasher<User> passwordHasher, IConfiguration configuration, IRoleRepository roleRepository)
         {
             _userRepository = userRepository;
             _jwtService = jwtService;
             _passwordHasher = passwordHasher;
             _configuration = configuration;
+            _roleRepository = roleRepository;
         }
 
         //login google
@@ -50,8 +52,7 @@ namespace BioLinker.Service
                     LastName = payload.GivenName,
                     UserImage = payload.Picture,
                     IsActive = true,
-                    Role = "User",
-                    CreateAt = DateTime.Now
+                    CreatedAt = DateTime.Now
                 };
 
                 await _userRepository.AddUserAsync(newUser);
@@ -66,7 +67,6 @@ namespace BioLinker.Service
                 UserId = existingUser.UserId,
                 FullName = existingUser.FullName,
                 Email = existingUser.Email,
-                Role = existingUser.Role
             };
         }
 
@@ -94,7 +94,6 @@ namespace BioLinker.Service
                 UserId = user.UserId,
                 FullName = user.FullName,
                 Email = user.Email,
-                Role = user.Role,
             };
         }
 
@@ -114,9 +113,8 @@ namespace BioLinker.Service
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 FullName = $"{request.FirstName} {request.LastName}",
-                Role = "User",
                 IsActive = true, // ve sau co them xac thuc
-                CreateAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
             };
             //hash password
             user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
@@ -136,5 +134,52 @@ namespace BioLinker.Service
             return true;
         }
 
+        public async Task<bool> UpdateProfileAsync(UpdateProfile dto)
+        {
+            var user = await _userRepository.GetByIdAsync(dto.UserId);
+            if (user == null) return false;
+
+            user.FullName = dto.FullName ?? user.FullName;
+            user.FirstName = dto.FirstName ?? user.FirstName;
+            user.LastName = dto.LastName ?? user.LastName;
+            user.UserImage = dto.UserImage ?? user.UserImage;
+
+            await _userRepository.UpdateAsync(user);
+            return true;
+        }
+
+        public async Task<bool> UpdateRoleAsync(UpdateRole dto)
+        {
+            var user = await _userRepository.GetByIdAsync(dto.UserId);
+            if (user == null) return false;
+
+            // tim role theo ten
+            var newRole = await _roleRepository.GetByNameAsync(dto.NewRoleName);
+            if (newRole == null) return false;
+
+            // da co role thi update
+            var userRole = user.UserRoles.FirstOrDefault();
+            if (userRole != null)
+            {
+                userRole.RoleId = newRole.RoleId;
+                userRole.StartDate = DateTime.UtcNow;
+            }
+            else
+            {
+                // neu user chua co role them moi
+                user.UserRoles = new List<UserRole>
+        {
+            new UserRole
+            {
+                UserId = user.UserId,
+                RoleId = newRole.RoleId,
+                StartDate = DateTime.UtcNow
+            }
+        };
+            }
+
+            await _userRepository.UpdateAsync(user);
+            return true;
+        }
     }
 }

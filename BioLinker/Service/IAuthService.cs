@@ -9,5 +9,7 @@ namespace BioLinker.Service
         Task<string> RegisterAsync(Register request);
 
         Task<bool> ResetPasswordAsync(ResetPassword dto);
+        Task<bool> UpdateRoleAsync(UpdateRole dto);
+        Task<bool> UpdateProfileAsync(UpdateProfile dto);
     }
 }

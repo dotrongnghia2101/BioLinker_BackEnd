@@ -155,5 +155,23 @@ namespace BioLinker.Controllers.User
             return Ok("Password reset sucessfully.");
         }
 
+        //update profile
+        [HttpPut("update-profile")]
+        public async Task<IActionResult> UpdateProfile(UpdateProfile dto)
+        {
+            var result = await _authService.UpdateProfileAsync(dto);
+            if (!result) return NotFound("User not found");
+            return Ok("Profile updated successfully.");
+        }
+
+        //update lai role neu user co mua goi 
+        [HttpPut("update-role")]
+        public async Task<IActionResult> UpdateRole(UpdateRole dto)
+        {
+            var result = await _authService.UpdateRoleAsync(dto);
+            if (!result) return NotFound("User not found");
+            return Ok("Role updated successfully.");
+        }
+
     }
 }

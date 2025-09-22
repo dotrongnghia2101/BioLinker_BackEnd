@@ -5,5 +5,10 @@
         public string? ThemeId { get; set; } = Guid.NewGuid().ToString();// PK
         public string PrimaryColor { get; set; } = string.Empty;
         public string SecondaryColor { get; set; } = string.Empty;
+
+
+        // Navigation
+        public ICollection<BioPage> BioPages { get; set; } = new List<BioPage>();
+
     }
 }

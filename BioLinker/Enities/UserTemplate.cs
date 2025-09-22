@@ -9,5 +9,9 @@
         public decimal PricePaid { get; set; }
         public string Currency { get; set; } = string.Empty;
         public DateTime? ExpireDate { get; set; }
+
+        // Navigation
+        public virtual User? User { get; set; }
+        public virtual Template? Template { get; set; }
     }
 }
