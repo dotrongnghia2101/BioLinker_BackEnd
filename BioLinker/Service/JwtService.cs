@@ -21,11 +21,15 @@ namespace BioLinker.Service
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+            var roleName = user.UserRoles?
+                .FirstOrDefault()?.Role?.RoleName ?? "FreeUser";
+
             //dua thong tin vao token
             var claims = new[]
             {
             new Claim(ClaimTypes.Email, user.Email),
             new Claim("UserId", user.UserId.ToString()),
+            new Claim(ClaimTypes.Role, roleName)
         };
 
             //tao token

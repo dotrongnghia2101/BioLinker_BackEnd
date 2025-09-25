@@ -14,14 +14,16 @@ namespace BioLinker.Service
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly IConfiguration _configuration;
         private readonly IRoleRepository _roleRepository;
+        private readonly IUserRoleRepository  _userRoleRepository;
 
-        public AuthService(IUserRepository userRepository, JwtService jwtService, IPasswordHasher<User> passwordHasher, IConfiguration configuration, IRoleRepository roleRepository)
+        public AuthService(IUserRepository userRepository, JwtService jwtService, IPasswordHasher<User> passwordHasher, IConfiguration configuration, IRoleRepository roleRepository, IUserRoleRepository userRoleRepository)
         {
             _userRepository = userRepository;
             _jwtService = jwtService;
             _passwordHasher = passwordHasher;
             _configuration = configuration;
             _roleRepository = roleRepository;
+            _userRoleRepository = userRoleRepository;
         }
 
         //login google
@@ -87,6 +89,9 @@ namespace BioLinker.Service
                 return null;
             }
 
+            var roleName = user.UserRoles?
+                            .FirstOrDefault()?.Role?.RoleName ?? "FreeUser";
+
             var token = _jwtService.GenerateToken(user);
             return new LoginResponse
             {
@@ -94,6 +99,7 @@ namespace BioLinker.Service
                 UserId = user.UserId,
                 FullName = user.FullName,
                 Email = user.Email,
+                Role = roleName,
             };
         }
 
@@ -120,6 +126,21 @@ namespace BioLinker.Service
             user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
             //luu vao database
             await _userRepository.AddUserAsync(user);
+            var defaultRole = await _roleRepository.GetByNameAsync("FreeUser");
+            if (defaultRole == null)
+            {
+                throw new Exception("Default role FreeUser not found.");
+            }
+
+            var userRole = new UserRole
+            {
+                UserId = user.UserId,
+                RoleId = defaultRole.RoleId,
+                StartDate = DateTime.UtcNow, // ngay dang ki
+                EndDate = null               // vo thoi han
+            };
+
+            await _userRoleRepository.AddAsync(userRole);
             return "User registered successfully.";
         }
 
