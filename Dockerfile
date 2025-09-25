@@ -16,14 +16,15 @@ WORKDIR /src
 COPY BioLinker/BioLinker.csproj BioLinker/
 RUN dotnet restore BioLinker/BioLinker.csproj
 
-COPY BioLinker/ BioLinker/
+COPY . .
 WORKDIR /src/BioLinker
-RUN dotnet build BioLinker.csproj -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet restore BioLinker.csproj
+RUN dotnet build BioLinker.csproj -c $BUILD_CONFIGURATION -o /app/build --verbosity detailed
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish BioLinker.csproj -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish BioLinker.csproj -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false --verbosity detailed
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
