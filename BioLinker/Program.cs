@@ -155,10 +155,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll", policy =>
     {
         policy
-              .WithOrigins("https://localhost:7168", "https://biolinker.com") // domain duoc phep
+              .AllowAnyOrigin()
               .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowAnyMethod();
     });
 });
 
@@ -214,6 +213,7 @@ app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "BioLinker API v1");
     c.DocumentTitle = "BioLinker Swagger UI";
+    c.RoutePrefix = string.Empty;
 });
 
 app.UseCors("AllowAll");
