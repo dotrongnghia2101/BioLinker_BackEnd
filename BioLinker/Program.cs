@@ -101,17 +101,17 @@ builder.Services.AddAuthentication(options =>
     cookieOptions.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 })
 // Facebook OAuth
-.AddFacebook("Facebook", options =>
-{
-    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; // phải chỉ rõ
-    options.AppId = builder.Configuration["Authentication:Facebook:AppId"];
-    options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
-    options.CallbackPath = "/signin-facebook"; // phải khớp Facebook Dev Console
-    options.SaveTokens = true;
-    options.Scope.Add("email");
-    options.Fields.Add("name");
-    options.Fields.Add("email");
-})
+//.AddFacebook("Facebook", options =>
+//{
+//    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; // phải chỉ rõ
+//    options.AppId = builder.Configuration["Authentication:Facebook:AppId"];
+//    options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
+//    options.CallbackPath = "/signin-facebook"; // phải khớp Facebook Dev Console
+//    options.SaveTokens = true;
+//    options.Scope.Add("email");
+//    options.Fields.Add("name");
+//    options.Fields.Add("email");
+//})
 // JWT cho API
 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, jwtOptions =>
 {
