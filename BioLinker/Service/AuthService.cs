@@ -58,6 +58,21 @@ namespace BioLinker.Service
                 };
 
                 await _userRepository.AddUserAsync(newUser);
+
+                //role mac dinh la freeuser
+                var freeRole = await _roleRepository.GetByNameAsync("FreeUser");
+                if (freeRole != null)
+                {
+                    var userRole = new UserRole
+                    {
+                        UserRoleId = Guid.NewGuid().ToString(),
+                        UserId = newUser.UserId,
+                        RoleId = freeRole.RoleId
+                    };
+
+                    await _userRoleRepository.AddAsync(userRole);
+                }
+
                 existingUser = newUser;
 
             }
