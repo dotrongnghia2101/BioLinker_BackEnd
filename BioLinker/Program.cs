@@ -19,10 +19,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-// ==================== CAU HINH DATABASE ====================
+// ==================== CAU HINH DATABASE MYSQL ====================
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDBContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 //==================== CAU HINH SERVICE ====================
 builder.Services.AddScoped<IAuthService, AuthService>();
