@@ -20,14 +20,16 @@ namespace BioLinker.Data
         public virtual DbSet<Marketplace> Markets { get; set; }
         public virtual DbSet<Notification> Notifications { get; set; }
         public virtual DbSet<Payment> Payments { get; set; }
-        public virtual DbSet<Section> Sections { get; set; }
         public virtual DbSet<StaticLink> StaticLinks { get; set; }
         public virtual DbSet<Style> Styles { get; set; }
         public virtual DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
         public virtual DbSet<Template> Templates { get; set; }
-        public virtual DbSet<Theme> Themes { get; set; }
         public virtual DbSet<UserTemplate> UserTemplates { get; set; }
-        public virtual DbSet<Wallpaper> Wallpapers { get; set; }
+        public virtual DbSet<Content> Contents { get; set; }
+        public virtual DbSet<Background> Backgrounds { get; set; }
+        public virtual DbSet<StyleText> StyleTexts { get; set; }
+        public virtual DbSet<StyleColor> StyleColors { get; set; }
+        public virtual DbSet<StyleSettings> StyleSettings { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -50,19 +52,15 @@ namespace BioLinker.Data
                 entity.Property(e => e.Email)
                      .IsRequired()
                      .HasMaxLength(255)
-                     .IsUnicode(false)
                      .HasColumnName("email");
                 entity.Property(e => e.PhoneNumber)
                      .HasMaxLength(20)
-                     .IsUnicode(false)
                      .HasColumnName("phoneNumber");
                 entity.Property(e => e.FirstName)
                       .HasMaxLength(100)
-                      .IsUnicode(true)
                       .HasColumnName("firstName");
                 entity.Property(e => e.LastName)
                      .HasMaxLength(100)
-                     .IsUnicode(true)
                      .HasColumnName("lastName");
                 entity.Property(e => e.CreatedAt)
                       .HasColumnType("datetime")
@@ -72,7 +70,6 @@ namespace BioLinker.Data
                       .HasColumnName("userImage");
                 entity.Property(e => e.PasswordHash)
                      .HasMaxLength(255)
-                     .IsUnicode(false)
                      .HasColumnName("passwordHash");
                 entity.Property(e => e.Job)
                       .HasMaxLength(200)
@@ -80,7 +77,6 @@ namespace BioLinker.Data
                 entity.Property(e => e.Gender)
                       .HasMaxLength(50)
                       .HasColumnName("gender");
-
                 entity.Property(e => e.IsActive)
                       .HasColumnName("isActive");
             });
@@ -143,8 +139,6 @@ namespace BioLinker.Data
                 entity.Property(e => e.Avatar)
                       .HasMaxLength(500)
                       .HasColumnName("avatar");
-                entity.Property(e => e.Background)
-                      .HasColumnName("background");
                 entity.Property(e => e.CustomerDomain)
                       .HasMaxLength(255)
                       .HasColumnName("customerDomain");
@@ -156,10 +150,10 @@ namespace BioLinker.Data
                       .HasColumnName("createdAt");
                 entity.Property(e => e.StyleId)
                       .HasColumnName("styleID");
-                entity.Property(e => e.ThemeId)
-                      .HasColumnName("themeID");
-                entity.Property(e => e.WallpaperId)
-                      .HasColumnName("wallpaperID");
+                entity.Property(e => e.StyleId)
+                      .HasColumnName("StyleID");
+                entity.Property(e => e.BackgroundId)
+                      .HasColumnName("BackgroundID");
 
                 entity.HasOne(bp => bp.User)
                       .WithMany(u => u.BioPages)
@@ -179,16 +173,10 @@ namespace BioLinker.Data
                       .HasConstraintName("FK_BioPage_Style")
                       .OnDelete(DeleteBehavior.SetNull);
 
-                entity.HasOne(bp => bp.Theme)
-                      .WithMany(t => t.BioPages)
-                      .HasForeignKey(bp => bp.ThemeId)
-                      .HasConstraintName("FK_BioPage_Theme")
-                      .OnDelete(DeleteBehavior.SetNull);
-
-                entity.HasOne(bp => bp.Wallpaper)
-                      .WithMany(w => w.BioPages)
-                      .HasForeignKey(bp => bp.WallpaperId)
-                      .HasConstraintName("FK_BioPage_Wallpaper")
+                entity.HasOne(x => x.Background)
+                      .WithMany(b => b.BioPages)
+                      .HasForeignKey(x => x.BackgroundId)
+                      .HasConstraintName("FK_BioPage_Background")
                       .OnDelete(DeleteBehavior.SetNull);
             });
 
@@ -241,6 +229,26 @@ namespace BioLinker.Data
                       .HasDatabaseName("IX_Link_BioPage_Position");
             });
 
+            // ========== STATIC LINK ==========
+            modelBuilder.Entity<StaticLink>(e =>
+            {
+                e.ToTable("StaticLink");
+                e.HasKey(x => x.StaticLinkId).HasName("PK_StaticLink");
+                e.Property(x => x.StaticLinkId).HasColumnName("staticLinkID");
+                e.Property(x => x.Title)
+                 .HasColumnType("longtext")
+                 .HasColumnName("title");
+                e.Property(x => x.Icon)
+                 .HasColumnType("longtext")
+                 .HasColumnName("icon");
+                e.Property(x => x.Platform)
+                 .HasMaxLength(100)
+                 .HasColumnName("platform");
+                e.Property(x => x.DefaultUrl)
+                 .HasMaxLength(2000)
+                 .HasColumnName("defaultUrl");
+            });
+
             // ========== ANALYTIC LINK ==========
             modelBuilder.Entity<AnalyticLink>(entity =>
             {
@@ -274,34 +282,42 @@ namespace BioLinker.Data
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // ========== SECTION ==========
-            modelBuilder.Entity<Section>(entity =>
+            // ========== CONTENT ==========
+            modelBuilder.Entity<Content>(entity =>
             {
-                entity.ToTable("Section");
-                entity.HasKey(e => e.SectionId)
-                      .HasName("PK_Section");
-                entity.Property(e => e.SectionId)
-                      .HasColumnName("sectionID");
+                entity.ToTable("Content");
+                entity.HasKey(e => e.ContentId)
+                      .HasName("PK_Content");
+
+                entity.Property(e => e.ContentId)
+                      .HasColumnName("contentID");
                 entity.Property(e => e.BioPageId)
                       .HasColumnName("bioPageID");
-                entity.Property(e => e.Type)
-                      .HasMaxLength(100)
-                      .HasColumnName("type");
-                entity.Property(e => e.Title)
-                      .HasMaxLength(200)
-                      .HasColumnName("title");
-                entity.Property(e => e.SubTitle)
-                      .HasMaxLength(200)
-                      .HasColumnName("subTitle");
-                entity.Property(e => e.Position)
-                      .HasColumnName("position");
+                entity.Property(e => e.ElementType)
+                      .HasMaxLength(50)
+                      .HasColumnName("elementType");
+                entity.Property(e => e.PositionData)
+                      .HasColumnType("longtext");
+                entity.Property(e => e.SizeData)
+                      .HasColumnType("longtext");
+                entity.Property(e => e.ElementData)
+                      .HasColumnType("longtext");
+                entity.Property(e => e.Alignment)
+                      .HasMaxLength(20)
+                      .HasColumnName("alignment");
                 entity.Property(e => e.Visible)
                       .HasColumnName("visible");
+                entity.Property(e => e.CreatedAt)
+                      .HasColumnType("datetime")
+                      .HasColumnName("createdAt");
+                entity.Property(e => e.UpdatedAt)
+                      .HasColumnType("datetime")
+                      .HasColumnName("updatedAt");
 
-                entity.HasOne(bs => bs.BioPage)
-                      .WithMany(bp => bp.Sections)
-                      .HasForeignKey(bs => bs.BioPageId)
-                      .HasConstraintName("FK_BioSection_BioPage")
+                entity.HasOne(c => c.BioPage)
+                      .WithMany(bp => bp.Contents)
+                      .HasForeignKey(c => c.BioPageId)
+                      .HasConstraintName("FK_Content_BioPage")
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
@@ -491,6 +507,126 @@ namespace BioLinker.Data
                       .HasConstraintName("FK_Notification_User")
                       .OnDelete(DeleteBehavior.Cascade);
             });
+
+            // ================= STYLE =================
+            modelBuilder.Entity<Style>(entity =>
+            {
+                entity.ToTable("Style");
+                entity.HasKey(e => e.StyleId)
+                      .HasName("PK_Style");
+
+                entity.Property(e => e.StyleId)
+                      .HasColumnName("styleID");
+                entity.Property(e => e.Preset)
+                      .HasMaxLength(100)
+                      .HasColumnName("preset");
+                entity.Property(e => e.LayoutMode)
+                      .HasMaxLength(50)
+                      .HasColumnName("layoutMode");
+            });
+
+            // ========== BACKGROUND ==========
+            modelBuilder.Entity<Background>(entity =>
+            {
+                entity.ToTable("Background");
+                entity.HasKey(e => e.BackgroundId)
+                      .HasName("PK_Background");
+
+                entity.Property(e => e.BackgroundId)
+                      .HasColumnName("backgroundID");
+                entity.Property(e => e.BioPageId)
+                      .HasColumnName("bioPageID");
+                entity.Property(e => e.Type)
+                      .HasMaxLength(50)
+                      .HasColumnName("type");
+                entity.Property(e => e.Value)
+                      .HasMaxLength(500)
+                      .HasColumnName("value");
+            });
+
+            // ========== STYLE SETTINGS ==========
+            modelBuilder.Entity<StyleSettings>(entity =>
+            {
+                entity.ToTable("StyleSettings");
+                entity.HasKey(e => e.StyleSettingsId)
+                      .HasName("PK_StyleSettings");
+
+                entity.Property(e => e.StyleSettingsId)
+                      .HasColumnName("styleSettingsID");
+                entity.Property(e => e.StyleId)
+                      .HasColumnName("styleID");
+                entity.Property(e => e.Thumbnail)
+                      .HasMaxLength(500)
+                      .HasColumnName("thumbnail");
+                entity.Property(e => e.MetaTitle)
+                      .HasMaxLength(200)
+                      .HasColumnName("metaTitle");
+                entity.Property(e => e.MetaDescription)
+                      .HasMaxLength(500)
+                      .HasColumnName("metaDescription");
+                entity.Property(e => e.CookieBanner)
+                      .HasColumnName("cookieBanner");
+
+                entity.HasOne(ss => ss.Style)
+                      .WithMany(s => s.StyleSettings)
+                      .HasForeignKey(ss => ss.StyleId)
+                      .HasConstraintName("FK_StyleSettings_Style")
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ========== STYLE COLOR ==========
+            modelBuilder.Entity<StyleColor>(entity =>
+            {
+                entity.ToTable("StyleColor");
+                entity.HasKey(e => e.StyleColorId).HasName("PK_StyleColor");
+
+                entity.Property(e => e.StyleColorId)
+                      .HasColumnName("styleColorID");
+                entity.Property(e => e.StyleId)
+                      .HasColumnName("styleID");
+                entity.Property(e => e.ButtonColor)
+                      .HasMaxLength(20)
+                      .HasColumnName("buttonColor");
+                entity.Property(e => e.IconColor)
+                      .HasMaxLength(20)
+                      .HasColumnName("iconColor");
+                entity.Property(e => e.BackgroundColor)
+                      .HasMaxLength(20)
+                      .HasColumnName("backgroundColor");
+
+                entity.HasOne(sc => sc.Style)
+                      .WithMany(s => s.StyleColors)
+                      .HasForeignKey(sc => sc.StyleId)
+                      .HasConstraintName("FK_StyleColor_Style")
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ========== STYLE TEXT ==========
+            modelBuilder.Entity<StyleText>(entity =>
+            {
+                entity.ToTable("StyleText");
+                entity.HasKey(e => e.StyleTextId).HasName("PK_StyleText");
+
+                entity.Property(e => e.StyleTextId)
+                      .HasColumnName("styleTextID");
+                entity.Property(e => e.StyleId) 
+                      .HasColumnName("styleID");
+                entity.Property(e => e.StyleType) 
+                      .HasMaxLength(50) 
+                      .HasColumnName("styleType");
+                entity.Property(e => e.CssClass)
+                      .HasMaxLength(500)
+                      .HasColumnName("cssClass");
+
+                entity.HasOne(st => st.Style)
+                      .WithMany(s => s.StyleTexts)
+                      .HasForeignKey(st => st.StyleId)
+                      .HasConstraintName("FK_StyleText_Style")
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            
+
 
             OnModelCreatingPartial(modelBuilder);
         }

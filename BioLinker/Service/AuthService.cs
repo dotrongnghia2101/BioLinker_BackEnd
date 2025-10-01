@@ -71,11 +71,14 @@ namespace BioLinker.Service
                     };
 
                     await _userRoleRepository.AddAsync(userRole);
-                }
-
+                    newUser.UserRoles = new List<UserRole> { userRole };
+                }               
                 existingUser = newUser;
-
             }
+
+            var roleName = existingUser.UserRoles?
+                            .FirstOrDefault()?.Role?.RoleName ?? "FreeUser";
+
             // Tao JWT Token de client luu dang nhap
             var token = _jwtService.GenerateToken(existingUser);
             return new LoginResponse
@@ -84,6 +87,8 @@ namespace BioLinker.Service
                 UserId = existingUser.UserId,
                 FullName = existingUser.FullName,
                 Email = existingUser.Email,
+                PhoneNumber = existingUser.PhoneNumber,
+                Role = roleName,
             };
         }
 
