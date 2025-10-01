@@ -2,7 +2,7 @@
 using BioLinker.Enities;
 using Microsoft.EntityFrameworkCore;
 
-namespace BioLinker.Respository
+namespace BioLinker.Respository.UserRepo
 {
     public class RoleRepository : IRoleRepository
     {
