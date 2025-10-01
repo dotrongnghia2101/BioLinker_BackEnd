@@ -1,6 +1,6 @@
 ﻿using BioLinker.Enities;
 
-namespace BioLinker.Respository
+namespace BioLinker.Respository.UserRepo
 {
     public interface IUserRepository
     {

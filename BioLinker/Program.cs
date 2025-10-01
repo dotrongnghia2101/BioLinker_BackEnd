@@ -1,8 +1,8 @@
 ﻿using BioLinker.Data;
 using BioLinker.DTO;
 using BioLinker.Enities;
-using BioLinker.Repository;
-using BioLinker.Respository;
+using BioLinker.Respository.TemplateRepo;
+using BioLinker.Respository.UserRepo;
 using BioLinker.Service;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -28,11 +28,13 @@ builder.Services.AddDbContext<AppDBContext>(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<ITemplateService, TemplateService>();
 
 //==================== CAU HINH REPOSITORY ====================
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
 
 // ==================== CAU HINH AUTHENTICATION (JWT + FACEBOOK) ====================
 //builder.Services.AddAuthentication(options =>

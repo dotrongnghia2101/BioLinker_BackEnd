@@ -1,7 +1,6 @@
 ﻿using BioLinker.DTO;
 using BioLinker.Enities;
-using BioLinker.Repository;
-using BioLinker.Respository;
+using BioLinker.Respository.UserRepo;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
 

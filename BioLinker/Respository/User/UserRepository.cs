@@ -1,9 +1,8 @@
 ﻿using BioLinker.Data;
 using BioLinker.Enities;
-using BioLinker.Respository;
 using Microsoft.EntityFrameworkCore;
 
-namespace BioLinker.Repository
+namespace BioLinker.Respository.UserRepo
 {
     public class UserRepository : IUserRepository
     {
