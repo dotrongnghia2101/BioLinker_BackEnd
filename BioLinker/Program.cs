@@ -1,6 +1,7 @@
 ﻿using BioLinker.Data;
 using BioLinker.DTO;
 using BioLinker.Enities;
+using BioLinker.Respository.BioPageRepo;
 using BioLinker.Respository.TemplateRepo;
 using BioLinker.Respository.UserRepo;
 using BioLinker.Service;
@@ -29,12 +30,14 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<ITemplateService, TemplateService>();
+builder.Services.AddScoped<IBackgroundService, BioLinker.Service.BackgroundService>();
 
 //==================== CAU HINH REPOSITORY ====================
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
+builder.Services.AddScoped<IBackgroundRepository, BackgroundRepository>();
 
 // ==================== CAU HINH AUTHENTICATION (JWT + FACEBOOK) ====================
 //builder.Services.AddAuthentication(options =>
