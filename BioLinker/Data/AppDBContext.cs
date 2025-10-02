@@ -27,8 +27,6 @@ namespace BioLinker.Data
         public virtual DbSet<UserTemplate> UserTemplates { get; set; }
         public virtual DbSet<Content> Contents { get; set; }
         public virtual DbSet<Background> Backgrounds { get; set; }
-        public virtual DbSet<StyleText> StyleTexts { get; set; }
-        public virtual DbSet<StyleColor> StyleColors { get; set; }
         public virtual DbSet<StyleSettings> StyleSettings { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -150,8 +148,6 @@ namespace BioLinker.Data
                       .HasColumnName("createdAt");
                 entity.Property(e => e.StyleId)
                       .HasColumnName("styleID");
-                entity.Property(e => e.StyleId)
-                      .HasColumnName("StyleID");
                 entity.Property(e => e.BackgroundId)
                       .HasColumnName("BackgroundID");
 
@@ -168,8 +164,8 @@ namespace BioLinker.Data
                       .OnDelete(DeleteBehavior.SetNull);
 
                 entity.HasOne(bp => bp.Style)
-                      .WithMany(s => s.BioPages)
-                      .HasForeignKey(bp => bp.StyleId)
+                      .WithOne(s => s.BioPage)
+                      .HasForeignKey<BioPage>(bp => bp.StyleId)
                       .HasConstraintName("FK_BioPage_Style")
                       .OnDelete(DeleteBehavior.SetNull);
 
@@ -178,7 +174,14 @@ namespace BioLinker.Data
                       .HasForeignKey(x => x.BackgroundId)
                       .HasConstraintName("FK_BioPage_Background")
                       .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasOne(bp => bp.StyleSettings)
+                      .WithOne(ss => ss.BioPage)
+                      .HasForeignKey<StyleSettings>(ss => ss.BioPageId)
+                      .HasConstraintName("FK_StyleSettings_BioPage")
+                      .OnDelete(DeleteBehavior.Cascade);
             });
+
 
             // ========== LINK ==========
             modelBuilder.Entity<Link>(entity =>
@@ -523,6 +526,22 @@ namespace BioLinker.Data
                 entity.Property(e => e.LayoutMode)
                       .HasMaxLength(50)
                       .HasColumnName("layoutMode");
+                entity.Property(e => e.ButtonColor)
+                      .HasMaxLength(20)
+                      .HasColumnName("buttonColor");
+                entity.Property(e => e.IconColor)
+                      .HasMaxLength(20)
+                      .HasColumnName("iconColor");
+                entity.Property(e => e.BackgroundColor)
+                      .HasMaxLength(20)
+                      .HasColumnName("backgroundColor");
+
+                // One-to-One BioPage - Style
+                entity.HasOne(s => s.BioPage)
+                      .WithOne(bp => bp.Style)
+                      .HasForeignKey<BioPage>(bp => bp.StyleId)
+                      .HasConstraintName("FK_BioPage_Style")
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             // ========== BACKGROUND ==========
@@ -553,8 +572,8 @@ namespace BioLinker.Data
 
                 entity.Property(e => e.StyleSettingsId)
                       .HasColumnName("styleSettingsID");
-                entity.Property(e => e.StyleId)
-                      .HasColumnName("styleID");
+                entity.Property(e => e.BioPageId)
+                      .HasColumnName("bioPageID");
                 entity.Property(e => e.Thumbnail)
                       .HasMaxLength(500)
                       .HasColumnName("thumbnail");
@@ -567,65 +586,13 @@ namespace BioLinker.Data
                 entity.Property(e => e.CookieBanner)
                       .HasColumnName("cookieBanner");
 
-                entity.HasOne(ss => ss.Style)
-                      .WithMany(s => s.StyleSettings)
-                      .HasForeignKey(ss => ss.StyleId)
-                      .HasConstraintName("FK_StyleSettings_Style")
+                // One-to-One BioPage - StyleSettings
+                entity.HasOne(ss => ss.BioPage)
+                      .WithOne(bp => bp.StyleSettings)
+                      .HasForeignKey<StyleSettings>(ss => ss.BioPageId)
+                      .HasConstraintName("FK_StyleSettings_BioPage")
                       .OnDelete(DeleteBehavior.Cascade);
             });
-
-            // ========== STYLE COLOR ==========
-            modelBuilder.Entity<StyleColor>(entity =>
-            {
-                entity.ToTable("StyleColor");
-                entity.HasKey(e => e.StyleColorId).HasName("PK_StyleColor");
-
-                entity.Property(e => e.StyleColorId)
-                      .HasColumnName("styleColorID");
-                entity.Property(e => e.StyleId)
-                      .HasColumnName("styleID");
-                entity.Property(e => e.ButtonColor)
-                      .HasMaxLength(20)
-                      .HasColumnName("buttonColor");
-                entity.Property(e => e.IconColor)
-                      .HasMaxLength(20)
-                      .HasColumnName("iconColor");
-                entity.Property(e => e.BackgroundColor)
-                      .HasMaxLength(20)
-                      .HasColumnName("backgroundColor");
-
-                entity.HasOne(sc => sc.Style)
-                      .WithMany(s => s.StyleColors)
-                      .HasForeignKey(sc => sc.StyleId)
-                      .HasConstraintName("FK_StyleColor_Style")
-                      .OnDelete(DeleteBehavior.Cascade);
-            });
-
-            // ========== STYLE TEXT ==========
-            modelBuilder.Entity<StyleText>(entity =>
-            {
-                entity.ToTable("StyleText");
-                entity.HasKey(e => e.StyleTextId).HasName("PK_StyleText");
-
-                entity.Property(e => e.StyleTextId)
-                      .HasColumnName("styleTextID");
-                entity.Property(e => e.StyleId) 
-                      .HasColumnName("styleID");
-                entity.Property(e => e.StyleType) 
-                      .HasMaxLength(50) 
-                      .HasColumnName("styleType");
-                entity.Property(e => e.CssClass)
-                      .HasMaxLength(500)
-                      .HasColumnName("cssClass");
-
-                entity.HasOne(st => st.Style)
-                      .WithMany(s => s.StyleTexts)
-                      .HasForeignKey(st => st.StyleId)
-                      .HasConstraintName("FK_StyleText_Style")
-                      .OnDelete(DeleteBehavior.Cascade);
-            });
-
-            
 
 
             OnModelCreatingPartial(modelBuilder);
