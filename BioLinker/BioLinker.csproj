@@ -34,12 +34,8 @@
 
   <ItemGroup>
     <Folder Include="Controller\BioPage\" />
-    <Folder Include="Controller\Background\" />
     <Folder Include="Controller\StyleSetting\" />
-    <Folder Include="Controller\StyleColor\" />
-    <Folder Include="Controller\StyleText\" />
     <Folder Include="Controller\Style\" />
-    <Folder Include="Respository\BioPage\" />
   </ItemGroup>
 
 </Project>

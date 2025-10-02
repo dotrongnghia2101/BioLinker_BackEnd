@@ -2,8 +2,8 @@
 {
     public class StyleSettings
     {
-        public string? StyleSettingsId { get; set; } = Guid.NewGuid().ToString();   
-        public string? StyleId { get; set; }
+        public string? StyleSettingsId { get; set; } = Guid.NewGuid().ToString();
+        public string? BioPageId { get; set; }
 
         public string? Thumbnail { get; set; }
         public string? MetaTitle { get; set; }
@@ -11,6 +11,6 @@
         public bool? CookieBanner { get; set; }
 
         // Navigation
-        public virtual Style? Style { get; set; }
+        public virtual BioPage? BioPage { get; set; }
     }
 }

@@ -19,6 +19,7 @@
         public virtual Template? Template { get; set; }
         public virtual Style? Style { get; set; }   
         public virtual Background? Background { get; set; }
+        public virtual StyleSettings? StyleSettings { get; set; }
         public virtual ICollection<Link> Links { get; set; } = new List<Link>();
         public virtual ICollection<AnalyticLink> AnalyticLinks { get; set; } = new List<AnalyticLink>();
         public virtual ICollection<Content> Contents { get; set; } = new List<Content>();
