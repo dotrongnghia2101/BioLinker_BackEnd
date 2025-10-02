@@ -31,6 +31,7 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<ITemplateService, TemplateService>();
 builder.Services.AddScoped<IBackgroundService, BioLinker.Service.BackgroundService>();
+builder.Services.AddScoped<IStyleService, StyleService>();
 
 //==================== CAU HINH REPOSITORY ====================
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -38,6 +39,7 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
 builder.Services.AddScoped<IBackgroundRepository, BackgroundRepository>();
+builder.Services.AddScoped<IStyleRepository, StyleRepository>();
 
 // ==================== CAU HINH AUTHENTICATION (JWT + FACEBOOK) ====================
 //builder.Services.AddAuthentication(options =>

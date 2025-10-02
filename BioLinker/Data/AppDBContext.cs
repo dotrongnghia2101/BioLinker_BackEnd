@@ -524,8 +524,11 @@ namespace BioLinker.Data
                       .HasMaxLength(100)
                       .HasColumnName("preset");
                 entity.Property(e => e.LayoutMode)
-                      .HasMaxLength(50)
+                      .HasMaxLength(50)                
                       .HasColumnName("layoutMode");
+                entity.Property(e => e.ButtonShape)
+                      .HasMaxLength(50)
+                      .HasColumnName("ButtonShape");
                 entity.Property(e => e.ButtonColor)
                       .HasMaxLength(20)
                       .HasColumnName("buttonColor");
