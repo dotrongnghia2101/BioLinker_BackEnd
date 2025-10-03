@@ -34,7 +34,6 @@
 
   <ItemGroup>
     <Folder Include="Controller\BioPage\" />
-    <Folder Include="Controller\StyleSetting\" />
   </ItemGroup>
 
 </Project>
