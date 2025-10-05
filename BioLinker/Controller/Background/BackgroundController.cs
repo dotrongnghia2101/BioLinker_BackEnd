@@ -24,14 +24,6 @@ namespace BioLinker.Controller.Background
             return Ok(bg);
         }
 
-        // GET api/backgrounds/by-bio/{bioPageId}
-        [HttpGet("by-bio/{bioPageId}")]
-        public async Task<IActionResult> GetByBioPage(string bioPageId)
-        {
-            var bg = await _service.GetByBioPageIdAsync(bioPageId);
-            if (bg == null) return NotFound();
-            return Ok(bg);
-        }
 
         // POST api/backgrounds
         [HttpPost]
