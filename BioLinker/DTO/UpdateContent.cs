@@ -4,6 +4,7 @@ namespace BioLinker.DTO
 {
     public class UpdateContent
     {
+        public string? ContentId { get; set; }
         public string? ElementType { get; set; }
         public string? Alignment { get; set; }
         public bool? Visible { get; set; }
