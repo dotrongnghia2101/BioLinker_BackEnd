@@ -35,7 +35,12 @@ namespace BioLinker.Respository.TemplateRepo
 
         public async Task<Template?> GetByIdAsync(string id)
         {
-            return await _context.Templates.FirstOrDefaultAsync(x => x.TemplateId == id);
+            return await _context.Templates
+                    .Include(t => t.Style)
+                    .Include(t => t.Background)
+                    .Include(t => t.StyleSettings)
+                    .Include(t => t.TemplateDetails)
+                    .FirstOrDefaultAsync(t => t.TemplateId == id);
         }
 
         public async Task UpdateAsync(Template template)

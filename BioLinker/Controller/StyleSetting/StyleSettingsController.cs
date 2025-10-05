@@ -26,14 +26,6 @@ namespace BioLinker.Controller.StyleSetting
             return Ok(result);
         }
 
-        // GET api/stylesettings/biopage/{bioPageId}
-        [HttpGet("biopage/{bioPageId}")]
-        public async Task<IActionResult> GetByBioPageId(string bioPageId)
-        {
-            var result = await _service.GetByBioPageIdAsync(bioPageId);
-            if (result == null) return NotFound();
-            return Ok(result);
-        }
 
         // POST api/stylesettings
         [HttpPost]

@@ -28,6 +28,7 @@ namespace BioLinker.Data
         public virtual DbSet<Content> Contents { get; set; }
         public virtual DbSet<Background> Backgrounds { get; set; }
         public virtual DbSet<StyleSettings> StyleSettings { get; set; }
+        public virtual DbSet<TemplateDetail> TemplateDetails { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -149,7 +150,9 @@ namespace BioLinker.Data
                 entity.Property(e => e.StyleId)
                       .HasColumnName("styleID");
                 entity.Property(e => e.BackgroundId)
-                      .HasColumnName("BackgroundID");
+                      .HasColumnName("backgroundID");
+                entity.Property(e => e.StyleSettingsId)
+                      .HasColumnName("styleSettingsID");
 
                 entity.HasOne(bp => bp.User)
                       .WithMany(u => u.BioPages)
@@ -176,10 +179,10 @@ namespace BioLinker.Data
                       .OnDelete(DeleteBehavior.SetNull);
 
                 entity.HasOne(bp => bp.StyleSettings)
-                      .WithOne(ss => ss.BioPage)
-                      .HasForeignKey<StyleSettings>(ss => ss.BioPageId)
-                      .HasConstraintName("FK_StyleSettings_BioPage")
-                      .OnDelete(DeleteBehavior.Cascade);
+                        .WithOne()
+                        .HasForeignKey<BioPage>(bp => bp.StyleSettingsId)
+                        .HasConstraintName("FK_BioPage_StyleSettings")
+                        .OnDelete(DeleteBehavior.SetNull);
             });
 
 
@@ -348,6 +351,14 @@ namespace BioLinker.Data
                 entity.Property(e => e.Status)
                       .HasMaxLength(50)
                       .HasColumnName("status");
+                entity.Property(e => e.StyleId)
+                      .HasColumnName("styleID");
+
+                entity.Property(e => e.BackgroundId)
+                      .HasColumnName("backgroundID");
+
+                entity.Property(e => e.StyleSettingsId)
+                      .HasColumnName("styleSettingsID");
 
                 entity.HasOne(t => t.Creator)
                       .WithMany(u => u.CreatedTemplates)
@@ -355,10 +366,45 @@ namespace BioLinker.Data
                       .HasConstraintName("FK_Template_User")
                       .OnDelete(DeleteBehavior.SetNull);
 
+                // Quan hệ: Template - Style (1-1)
+                entity.HasOne(t => t.Style)
+                      .WithMany()
+                      .HasForeignKey(t => t.StyleId)
+                      .HasConstraintName("FK_Template_Style")
+                      .OnDelete(DeleteBehavior.SetNull);
+
+                // Quan hệ: Template - Background (1-1)
+                entity.HasOne(t => t.Background)
+                      .WithMany()
+                      .HasForeignKey(t => t.BackgroundId)
+                      .HasConstraintName("FK_Template_Background")
+                      .OnDelete(DeleteBehavior.SetNull);
+
+                // Quan hệ: Template - StyleSettings (1-1)
+                entity.HasOne(t => t.StyleSettings)
+                      .WithOne()
+                      .HasForeignKey<Template>(t => t.StyleSettingsId)
+                      .HasConstraintName("FK_Template_StyleSettings")
+                      .OnDelete(DeleteBehavior.SetNull);
+
                 entity.HasMany(t => t.TemplateDetails)
                       .WithOne(td => td.Template)
                       .HasForeignKey(td => td.TemplateId)
                       .HasConstraintName("FK_TemplateDetail_Template")
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // Quan hệ: Template - BioPage (1-n)
+                entity.HasMany(t => t.BioPages)
+                      .WithOne(bp => bp.Template)
+                      .HasForeignKey(bp => bp.TemplateId)
+                      .HasConstraintName("FK_BioPage_Template")
+                      .OnDelete(DeleteBehavior.SetNull);
+
+                // Quan hệ: Template - Marketplace (1-n)
+                entity.HasMany(t => t.Marketplaces)
+                      .WithOne(m => m.Template)
+                      .HasForeignKey(m => m.TemplateId)
+                      .HasConstraintName("FK_Marketplace_Template")
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
@@ -397,6 +443,12 @@ namespace BioLinker.Data
 
                 entity.Property(e => e.CreatedAt)
                       .HasColumnName("createdAt");
+
+                entity.HasOne(td => td.Template)
+                      .WithMany(t => t.TemplateDetails)
+                      .HasForeignKey(td => td.TemplateId)
+                      .HasConstraintName("FK_TemplateDetail_Template")
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             // ========== USER TEMPLATE ==========
@@ -606,13 +658,6 @@ namespace BioLinker.Data
                 entity.Property(e => e.UpdatedAt)
                       .HasColumnType("datetime")
                       .HasColumnName("updatedAt");
-
-                // 1 Background - n BioPage
-                entity.HasMany(b => b.BioPages)
-                      .WithOne(bp => bp.Background)
-                      .HasForeignKey(bp => bp.BackgroundId)
-                      .HasConstraintName("FK_BioPage_Background")
-                      .OnDelete(DeleteBehavior.SetNull);
             });
 
             // ========== STYLE SETTINGS ==========
@@ -624,8 +669,6 @@ namespace BioLinker.Data
 
                 entity.Property(e => e.StyleSettingsId)
                       .HasColumnName("styleSettingsID");
-                entity.Property(e => e.BioPageId)
-                      .HasColumnName("bioPageID");
                 entity.Property(e => e.Thumbnail)
                       .HasMaxLength(500)
                       .HasColumnName("thumbnail");
@@ -638,12 +681,6 @@ namespace BioLinker.Data
                 entity.Property(e => e.CookieBanner)
                       .HasColumnName("cookieBanner");
 
-                // One-to-One BioPage - StyleSettings
-                entity.HasOne(ss => ss.BioPage)
-                      .WithOne(bp => bp.StyleSettings)
-                      .HasForeignKey<StyleSettings>(ss => ss.BioPageId)
-                      .HasConstraintName("FK_StyleSettings_BioPage")
-                      .OnDelete(DeleteBehavior.Cascade);
             });
 
 
