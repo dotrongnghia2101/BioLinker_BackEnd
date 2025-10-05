@@ -354,6 +354,49 @@ namespace BioLinker.Data
                       .HasForeignKey(t => t.CreatedBy)
                       .HasConstraintName("FK_Template_User")
                       .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasMany(t => t.TemplateDetails)
+                      .WithOne(td => td.Template)
+                      .HasForeignKey(td => td.TemplateId)
+                      .HasConstraintName("FK_TemplateDetail_Template")
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ========== TEMPLATE DETAIL ==========
+            modelBuilder.Entity<TemplateDetail>(entity =>
+            {
+                entity.ToTable("TemplateDetail");
+
+                entity.HasKey(e => e.TemplateDetailId)
+                      .HasName("PK_TemplateDetail");
+
+                entity.Property(e => e.TemplateDetailId)
+                      .HasColumnName("templateDetailID");
+
+                entity.Property(e => e.TemplateId)
+                      .HasColumnName("templateID");
+
+                entity.Property(e => e.ElementType)
+                      .HasMaxLength(100)
+                      .HasColumnName("elementType");
+
+                entity.Property(e => e.PositionData)
+                      .HasColumnName("positionData");
+
+                entity.Property(e => e.SizeData)
+                      .HasColumnName("sizeData");
+
+                entity.Property(e => e.StyleData)
+                      .HasColumnName("styleData");
+
+                entity.Property(e => e.ElementData)
+                      .HasColumnName("elementData");
+
+                entity.Property(e => e.OrderIndex)
+                      .HasColumnName("orderIndex");
+
+                entity.Property(e => e.CreatedAt)
+                      .HasColumnName("createdAt");
             });
 
             // ========== USER TEMPLATE ==========
@@ -539,12 +582,6 @@ namespace BioLinker.Data
                       .HasMaxLength(20)
                       .HasColumnName("backgroundColor");
 
-                // One-to-One BioPage - Style
-                entity.HasOne(s => s.BioPage)
-                      .WithOne(bp => bp.Style)
-                      .HasForeignKey<BioPage>(bp => bp.StyleId)
-                      .HasConstraintName("FK_BioPage_Style")
-                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             // ========== BACKGROUND ==========
@@ -556,14 +593,26 @@ namespace BioLinker.Data
 
                 entity.Property(e => e.BackgroundId)
                       .HasColumnName("backgroundID");
-                entity.Property(e => e.BioPageId)
-                      .HasColumnName("bioPageID");
                 entity.Property(e => e.Type)
                       .HasMaxLength(50)
                       .HasColumnName("type");
                 entity.Property(e => e.Value)
                       .HasMaxLength(500)
                       .HasColumnName("value");
+                entity.Property(e => e.CreatedAt)
+                      .HasColumnType("datetime")
+                      .HasColumnName("createdAt");
+
+                entity.Property(e => e.UpdatedAt)
+                      .HasColumnType("datetime")
+                      .HasColumnName("updatedAt");
+
+                // 1 Background - n BioPage
+                entity.HasMany(b => b.BioPages)
+                      .WithOne(bp => bp.Background)
+                      .HasForeignKey(bp => bp.BackgroundId)
+                      .HasConstraintName("FK_BioPage_Background")
+                      .OnDelete(DeleteBehavior.SetNull);
             });
 
             // ========== STYLE SETTINGS ==========
