@@ -73,9 +73,10 @@ namespace BioLinker.Service
             };
 
             // === Clone Style ===
+            string? styleId = null;
             if (template.Style != null)
             {
-                var newStyle = new CreateStyle
+                var createdStyle = await _styleService.CreateAsync(new CreateStyle
                 {
                     Preset = template.Style.Preset,
                     LayoutMode = template.Style.LayoutMode,
@@ -83,49 +84,62 @@ namespace BioLinker.Service
                     ButtonColor = template.Style.ButtonColor,
                     IconColor = template.Style.IconColor,
                     BackgroundColor = template.Style.BackgroundColor
-                };
+                });
 
-                var createdStyle = await _styleService.CreateAsync(newStyle);
-                newBio.StyleId = createdStyle.StyleId;
+                // đảm bảo lấy đúng ID đã lưu trong DB
+                styleId = createdStyle.StyleId;
             }
 
             // === Clone background ===
+            string? backgroundId = null;
             if (template.Background != null)
             {
-                var newBg = new BackgroundCreate
+                // Tạo background mới
+                var bg = await _backgroundService.CreateAsync(new BackgroundCreate
                 {
                     Type = template.Background.Type,
                     Value = template.Background.Value
-                };
+                });
 
-                var createdBg = await _backgroundService.CreateAsync(newBg);
-                newBio.BackgroundId = createdBg.BackgroundId;
+                // Đảm bảo EF đã commit entity mới vào DB
+                if (bg != null && !string.IsNullOrEmpty(bg.BackgroundId))
+                {
+                    backgroundId = bg.BackgroundId;
+                }
             }
 
             // === Clone style setting ===
+            string? styleSettingsId = null;
             if (template.StyleSettings != null)
             {
-                var newSettings = new CreateStyleSettings
+                var newSetting = await _styleSettingsService.CreateAsync(new CreateStyleSettings
                 {
                     Thumbnail = template.StyleSettings.Thumbnail,
                     MetaTitle = template.StyleSettings.MetaTitle,
                     MetaDescription = template.StyleSettings.MetaDescription,
                     CookieBanner = template.StyleSettings.CookieBanner
-                };
+                });
 
-                var createdSettings = await _styleSettingsService.CreateAsync(newSettings);
-                newBio.StyleSettings = new StyleSettings
-                {
-                    StyleSettingsId = createdSettings.StyleSettingsId,
-                    BioPageId = newBio.BioPageId,
-                    Thumbnail = createdSettings.Thumbnail,
-                    MetaTitle = createdSettings.MetaTitle,
-                    MetaDescription = createdSettings.MetaDescription,
-                    CookieBanner = createdSettings.CookieBanner
-                };
+                styleSettingsId = newSetting.StyleSettingsId;
             }
             // luu bio
-            await _repo.AddAsync(newBio);
+            var newBios = new BioPage
+            {
+                BioPageId = Guid.NewGuid().ToString(),
+                UserId = dto.UserId,
+                TemplateId = template.TemplateId,
+                Title = dto.Title ?? template.Name,
+                Description = dto.Description ?? template.Description,
+                Avatar = null,
+                CustomerDomain = dto.CustomerDomain ?? "",
+                Status = dto.Status ?? "Active",
+                CreatedAt = DateTime.UtcNow,
+                StyleId = styleId,
+                BackgroundId = backgroundId,
+                StyleSettingsId = styleSettingsId
+            };
+
+            await _repo.AddAsync(newBios);
 
             // template detail
             if (template.TemplateDetails != null && template.TemplateDetails.Any())
@@ -134,7 +148,7 @@ namespace BioLinker.Service
                 {
                     var newContent = new CreateContent
                     {
-                        BioPageId = newBio.BioPageId,
+                        BioPageId = newBios.BioPageId,
                         ElementType = item.ElementType,
                         Alignment = "center",
                         Visible = true,

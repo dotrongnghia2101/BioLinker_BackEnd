@@ -17,7 +17,6 @@ namespace BioLinker.Service
         {
             var entity = new StyleSettings
             {
-                BioPageId = dto.BioPageId,
                 Thumbnail = dto.Thumbnail,
                 MetaTitle = dto.MetaTitle,
                 MetaDescription = dto.MetaDescription,
@@ -30,12 +29,6 @@ namespace BioLinker.Service
         public async Task<bool> DeleteAsync(string id)
         {
             return await _repo.DeleteAsync(id);
-        }
-
-        public async Task<StyleSettingsResponse?> GetByBioPageIdAsync(string bioPageId)
-        {
-            var entity = await _repo.GetByBioPageIdAsync(bioPageId);
-            return entity == null ? null : MapToDto(entity);
         }
 
         public async Task<StyleSettingsResponse?> GetByIdAsync(string id)
@@ -62,7 +55,6 @@ namespace BioLinker.Service
             return new StyleSettingsResponse
             {
                 StyleSettingsId = entity.StyleSettingsId,
-                BioPageId = entity.BioPageId,
                 Thumbnail = entity.Thumbnail,
                 MetaTitle = entity.MetaTitle,
                 MetaDescription = entity.MetaDescription,

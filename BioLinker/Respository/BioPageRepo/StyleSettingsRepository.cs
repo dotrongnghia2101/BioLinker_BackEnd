@@ -30,11 +30,6 @@ namespace BioLinker.Respository.BioPageRepo
             return true;
         }
 
-        public async Task<StyleSettings?> GetByBioPageIdAsync(string bioPageId)
-        {
-            return await _context.StyleSettings
-                                 .FirstOrDefaultAsync(s => s.BioPageId == bioPageId);
-        }
 
         public async Task<StyleSettings?> GetByIdAsync(string id)
         {
