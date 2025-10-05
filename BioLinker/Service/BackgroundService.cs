@@ -16,21 +16,18 @@ namespace BioLinker.Service
         // tao moi background
         public async Task<BackgroundResponse> CreateAsync(BackgroundCreate dto)
         {
-            //check bioid co null hay khong
-            if (string.IsNullOrEmpty(dto.BioPageId))
-                throw new ArgumentException("BioPageId required");
+            if (string.IsNullOrEmpty(dto.Type))
+                throw new ArgumentException("Background type is required.");
 
-            //kiem tra type cua background la gi
-            if (!BackgroundTypes.All.Contains(dto.Type ?? ""))
-                throw new ArgumentException("Invalid background type");
+            if (!BackgroundTypes.All.Contains(dto.Type))
+                throw new ArgumentException("Invalid background type.");
 
-            // tao moi background
+            // tao moi
             var bg = new Background
             {
-                BioPageId = dto.BioPageId,
                 Type = dto.Type,
                 Value = dto.Value,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow
             };
 
             await _repo.AddAsync(bg);
@@ -39,6 +36,9 @@ namespace BioLinker.Service
 
         public async Task<bool> DeleteAsync(string id)
         {
+            if (string.IsNullOrEmpty(id))
+                throw new ArgumentException("Background ID is required.");
+
             var bg = await _repo.GetByIdAsync(id);
             if (bg == null) return false;
 
@@ -47,11 +47,11 @@ namespace BioLinker.Service
         }
 
         // lay background theo bioPageId
-        public async Task<BackgroundResponse?> GetByBioPageIdAsync(string bioPageId)
-        {
-            var bg = await _repo.GetByBioPageIdAsync(bioPageId);
-            return bg == null ? null : MapToDto(bg);
-        }
+        //public async Task<BackgroundResponse?> GetByBioPageIdAsync(string bioPageId)
+        //{
+        //    var bg = await _repo.GetByBioPageIdAsync(bioPageId);
+        //    return bg == null ? null : MapToDto(bg);
+        //}
 
         // lay background theo id
         public async Task<BackgroundResponse?> GetByIdAsync(string id)
@@ -63,11 +63,15 @@ namespace BioLinker.Service
         // update background
         public async Task<BackgroundResponse?> UpdateAsync(string id, BackgroundUpdate dto)
         {
+            if (string.IsNullOrEmpty(id))
+                throw new ArgumentException("Background ID is required.");
+
             var bg = await _repo.GetByIdAsync(id);
             if (bg == null) return null;
 
+            // Validate type neu co
             if (!string.IsNullOrEmpty(dto.Type) && !BackgroundTypes.All.Contains(dto.Type))
-                throw new ArgumentException("Invalid background type");
+                throw new ArgumentException("Invalid background type.");
 
             bg.Type = dto.Type ?? bg.Type;
             bg.Value = dto.Value ?? bg.Value;
@@ -83,9 +87,10 @@ namespace BioLinker.Service
             return new BackgroundResponse
             {
                 BackgroundId = bg.BackgroundId,
-                BioPageId = bg.BioPageId,
                 Type = bg.Type,
-                Value = bg.Value
+                Value = bg.Value,
+                CreatedAt = bg.CreatedAt,
+                UpdatedAt = bg.UpdatedAt
             };
         }
     }

@@ -24,10 +24,6 @@ namespace BioLinker.Respository.BioPageRepo
             await _context.SaveChangesAsync();
         }
 
-        public async Task<Background?> GetByBioPageIdAsync(string bioPageId)
-        {
-            return await _context.Backgrounds.FirstOrDefaultAsync(b => b.BioPageId == bioPageId);
-        }
 
         public async Task<Background?> GetByIdAsync(string id)
         {
