@@ -173,5 +173,22 @@ namespace BioLinker.Controllers.User
             return Ok("Role updated successfully.");
         }
 
+        //update job
+        [HttpPut("update-job")]
+        public async Task<IActionResult> UpdateJob([FromBody] JobUpdate request)
+        {
+            if (string.IsNullOrEmpty(request.UserId) || string.IsNullOrEmpty(request.Job))
+                return BadRequest("UserId and Job are required");
+
+            var result = await _authService.UpdateUserJobAsync(request);
+            if (!result) return NotFound("User not found");
+
+            return Ok(new
+            {
+                message = "Job updated successfully",
+                job = request.Job
+            });
+        }
+
     }
 }

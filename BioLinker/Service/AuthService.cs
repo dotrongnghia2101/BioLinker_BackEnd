@@ -1,8 +1,11 @@
-﻿using BioLinker.DTO;
+﻿using Azure.Core;
+using BioLinker.Data;
+using BioLinker.DTO;
 using BioLinker.Enities;
 using BioLinker.Respository.UserRepo;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace BioLinker.Service
 {
@@ -14,8 +17,15 @@ namespace BioLinker.Service
         private readonly IConfiguration _configuration;
         private readonly IRoleRepository _roleRepository;
         private readonly IUserRoleRepository  _userRoleRepository;
+        private readonly AppDBContext _appDBContext;
 
-        public AuthService(IUserRepository userRepository, JwtService jwtService, IPasswordHasher<User> passwordHasher, IConfiguration configuration, IRoleRepository roleRepository, IUserRoleRepository userRoleRepository)
+        public AuthService(IUserRepository userRepository, 
+               JwtService jwtService, 
+               IPasswordHasher<User> passwordHasher, 
+               IConfiguration configuration, 
+               IRoleRepository roleRepository, 
+               IUserRoleRepository userRoleRepository,
+               AppDBContext appDBContext)
         {
             _userRepository = userRepository;
             _jwtService = jwtService;
@@ -23,6 +33,7 @@ namespace BioLinker.Service
             _configuration = configuration;
             _roleRepository = roleRepository;
             _userRoleRepository = userRoleRepository;
+            _appDBContext = appDBContext;
         }
 
         //login google
@@ -219,6 +230,16 @@ namespace BioLinker.Service
             }
 
             await _userRepository.UpdateAsync(user);
+            return true;
+        }
+
+        public async Task<bool> UpdateUserJobAsync(JobUpdate dto)
+        {
+            var user = await _appDBContext.Users.FindAsync(dto.UserId);
+            if (user == null) return false;
+
+            user.Job = dto.Job;
+            await _appDBContext.SaveChangesAsync();
             return true;
         }
     }
