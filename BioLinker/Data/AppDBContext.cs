@@ -78,7 +78,13 @@ namespace BioLinker.Data
                       .HasColumnName("gender");
                 entity.Property(e => e.IsActive)
                       .HasColumnName("isActive");
-            });
+                entity.Property(e => e.IsGoogle)
+                      .HasColumnName("isGoogle")
+                      .HasDefaultValue(false);
+                entity.Property(e => e.DateOfBirth)
+                      .HasColumnType("date")
+                      .HasColumnName("dateOfBirth");
+               });
 
             // ========== ROLE ==========
             modelBuilder.Entity<Role>(entity =>

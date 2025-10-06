@@ -64,7 +64,7 @@ namespace BioLinker.Service
                     LastName = payload.GivenName,
                     UserImage = payload.Picture,
                     IsActive = true,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now,
                 };
 
                 await _userRepository.AddUserAsync(newUser);
@@ -99,6 +99,7 @@ namespace BioLinker.Service
                 Email = existingUser.Email,
                 PhoneNumber = existingUser.PhoneNumber,
                 Role = roleName,
+                Gender = existingUser.Gender,
             };
         }
 
@@ -111,6 +112,9 @@ namespace BioLinker.Service
             {
                 return null;
             }
+            // is google true va k co pass
+            if ((user.IsGoogle ?? false) && string.IsNullOrEmpty(user.PasswordHash))
+                throw new Exception("This account is Google Account. PLease Login by Google");
 
             //hash lai pasword de so sanh
             var verifyResult = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
@@ -130,6 +134,9 @@ namespace BioLinker.Service
                 FullName = user.FullName,
                 Email = user.Email,
                 Role = roleName,
+                Gender = user.Gender,
+                PhoneNumber= user.PhoneNumber,
+                UserImage = user.UserImage,             
             };
         }
 
@@ -150,7 +157,9 @@ namespace BioLinker.Service
                 LastName = request.LastName,
                 FullName = $"{request.FirstName} {request.LastName}",
                 IsActive = true, // ve sau co them xac thuc
-                CreatedAt = DateTime.UtcNow,
+                Gender = request.Gender,
+                DateOfBirth = request.DateOfBirth,
+                IsGoogle = false,
             };
             //hash password
             user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
@@ -194,6 +203,7 @@ namespace BioLinker.Service
             user.FirstName = dto.FirstName ?? user.FirstName;
             user.LastName = dto.LastName ?? user.LastName;
             user.UserImage = dto.UserImage ?? user.UserImage;
+            user.Gender = dto.Gender ?? user.Gender;
 
             await _userRepository.UpdateAsync(user);
             return true;
