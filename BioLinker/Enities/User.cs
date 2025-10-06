@@ -31,5 +31,6 @@ namespace BioLinker.Enities
         public virtual ICollection<UserTemplate> UserTemplates { get; set; } = new List<UserTemplate>();
         public virtual ICollection<Template> CreatedTemplates { get; set; } = new List<Template>();
         public virtual ICollection<Marketplace> Marketplaces { get; set; } = new List<Marketplace>();
+        public virtual ICollection<StaticLink> StaticLinks { get; set; } = new List<StaticLink>();
     }
 }
