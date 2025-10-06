@@ -16,6 +16,8 @@ namespace BioLinker.Enities
         public string? PasswordHash { get; set; }
         public string? Job { get; set; }
         public string? Gender { get; set; }
+        public DateTime? DateOfBirth { get; set; }
+        public bool? IsGoogle { get; set; }
 
         // Navigation
         //public virtual ICollection<SubscriptionPlan> Subscriptions { get; set; } = new List<SubscriptionPlan>();

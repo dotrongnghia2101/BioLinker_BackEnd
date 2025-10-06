@@ -40,23 +40,33 @@ namespace BioLinker.Controllers.User
         [HttpPost("Login")]
         public async Task<IActionResult> Login(Login request)
         {
-            var response = await _authService.LoginAsync(request);
-            if (response == null)
+            if (!ModelState.IsValid)
+                return BadRequest(new { error = "Invalid input." });
+
+            try
             {
-                return Unauthorized(new { error = "Invalid email or password." });
+                var response = await _authService.LoginAsync(request);
+
+                // Sai email hoặc mật khẩu -> 401
+                if (response == null)
+                    return Unauthorized(new { error = "Invalid email or password." });
+
+                // Thành công -> set cookie + trả data
+                Response.Cookies.Append("jwt", response.Token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTimeOffset.UtcNow.AddHours(1)
+                });
+
+                return Ok(response);
             }
-
-            Response.Cookies.Append("jwt", response.Token, new CookieOptions
+            catch (Exception ex)
             {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTimeOffset.UtcNow.AddHours(1)
-            });
-            ////an token khoi body
-            //response.Token = "";
-
-            return Ok(response);
+                // Trường hợp tài khoản Google chưa có password (service throw)
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
         // Controllers/User/AuthController.cs
