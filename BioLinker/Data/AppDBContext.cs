@@ -226,8 +226,6 @@ namespace BioLinker.Data
                 entity.Property(e => e.LinkType)
                       .HasMaxLength(50)
                       .HasColumnName("linkType");
-                entity.Property(e => e.StaticLinkId)
-                      .HasColumnName("staticLinkID");
 
                 entity.HasOne(l => l.BioPage)
                       .WithMany(bp => bp.Links)
@@ -235,11 +233,6 @@ namespace BioLinker.Data
                       .HasConstraintName("FK_Link_BioPage")
                       .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasOne(l => l.StaticLink)
-                      .WithMany(sl => sl.Links)
-                      .HasForeignKey(l => l.StaticLinkId)
-                      .HasConstraintName("FK_Link_StaticLink")
-                      .OnDelete(DeleteBehavior.SetNull);
 
                 entity.HasIndex(e => new { e.BioPageId, e.Position })
                       .HasDatabaseName("IX_Link_BioPage_Position");
@@ -263,6 +256,14 @@ namespace BioLinker.Data
                 e.Property(x => x.DefaultUrl)
                  .HasMaxLength(2000)
                  .HasColumnName("defaultUrl");
+                e.Property(x => x.UserId)
+                 .HasColumnName("userID");
+
+                e.HasOne(x => x.User)
+                 .WithMany(u => u.StaticLinks)
+                 .HasForeignKey(x => x.UserId)
+                 .HasConstraintName("FK_StaticLink_User")
+                 .OnDelete(DeleteBehavior.Cascade);
             });
 
             // ========== ANALYTIC LINK ==========

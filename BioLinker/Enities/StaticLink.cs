@@ -3,12 +3,14 @@
     public class StaticLink
     {
         public string? StaticLinkId { get; set; } = Guid.NewGuid().ToString();// PK
-        public string? Title { get; set; } = string.Empty;
-        public string? Icon { get; set; } = string.Empty;
-        public string? Platform { get; set; } = string.Empty;
-        public string? DefaultUrl { get; set; } = string.Empty;
+        public string? Title { get; set; } 
+        public string? UserId { get; set; }
+        public string? Icon { get; set; } 
+        public string? Platform { get; set; } 
+        public string? DefaultUrl { get; set; }
+        public bool? Status { get; set; }
 
         // Navigation
-        public virtual ICollection<Link> Links { get; set; } = new List<Link>();
+        public virtual User? User { get; set; }
     }
 }
