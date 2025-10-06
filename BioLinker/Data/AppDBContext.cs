@@ -84,7 +84,14 @@ namespace BioLinker.Data
                 entity.Property(e => e.DateOfBirth)
                       .HasColumnType("date")
                       .HasColumnName("dateOfBirth");
-               });
+                entity.Property(e => e.CustomerDomain)
+                      .HasMaxLength(255)
+                      .HasColumnName("customerDomain");
+                entity.Property(e => e.Description)
+                     .HasColumnName("description");
+                entity.Property(e => e.NickName)
+                    .HasColumnName("nickName");
+            });
 
             // ========== ROLE ==========
             modelBuilder.Entity<Role>(entity =>
@@ -144,9 +151,6 @@ namespace BioLinker.Data
                 entity.Property(e => e.Avatar)
                       .HasMaxLength(500)
                       .HasColumnName("avatar");
-                entity.Property(e => e.CustomerDomain)
-                      .HasMaxLength(255)
-                      .HasColumnName("customerDomain");
                 entity.Property(e => e.Status)
                       .HasMaxLength(50)
                       .HasColumnName("status");

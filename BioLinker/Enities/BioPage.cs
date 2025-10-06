@@ -11,7 +11,6 @@
         public string? Avatar { get; set; } = string.Empty;
         public string? BackgroundId { get; set; } = string.Empty; //FK
         public string? StyleSettingsId { get; set; }
-        public string? CustomerDomain { get; set; } = string.Empty;
         public string? Status { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
 
