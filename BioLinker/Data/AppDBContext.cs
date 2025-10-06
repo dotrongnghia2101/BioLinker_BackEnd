@@ -258,6 +258,8 @@ namespace BioLinker.Data
                  .HasColumnName("defaultUrl");
                 e.Property(x => x.UserId)
                  .HasColumnName("userID");
+                e.Property(x => x.Status)
+                 .HasColumnName("Status");
 
                 e.HasOne(x => x.User)
                  .WithMany(u => u.StaticLinks)

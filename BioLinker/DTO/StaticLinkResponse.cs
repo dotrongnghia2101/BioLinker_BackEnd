@@ -8,5 +8,6 @@
         public string? Icon { get; set; }
         public string? Platform { get; set; }
         public string? DefaultUrl { get; set; }
+        public string? Status { get; set; } 
     }
 }
