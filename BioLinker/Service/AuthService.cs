@@ -6,6 +6,7 @@ using BioLinker.Respository.UserRepo;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace BioLinker.Service
 {
@@ -65,6 +66,13 @@ namespace BioLinker.Service
                     UserImage = payload.Picture,
                     IsActive = true,
                     CreatedAt = DateTime.Now,
+                    IsGoogle = true,
+                    CustomerDomain = null,
+                    Job = null,
+                    Description = null,
+                    DateOfBirth = null,
+                    NickName = null,
+                    Gender = null,
                 };
 
                 await _userRepository.AddUserAsync(newUser);
@@ -136,7 +144,13 @@ namespace BioLinker.Service
                 Role = roleName,
                 Gender = user.Gender,
                 PhoneNumber= user.PhoneNumber,
-                UserImage = user.UserImage,             
+                UserImage = user.UserImage,       
+                Job = user.Job,
+                DateOfBirth = user.DateOfBirth,
+                NickName = user.NickName,
+                Description = user.Description,
+                CustomerDomain = user.CustomerDomain,
+                IsGoogle = user.IsGoogle,
             };
         }
 
@@ -243,14 +257,43 @@ namespace BioLinker.Service
             return true;
         }
 
-        public async Task<bool> UpdateUserJobAsync(JobUpdate dto)
+        public async Task<(bool Success, string? Error)> UpdateUserProfileCustomizeAsync(ProfileCustomizeUpdate dto)
         {
             var user = await _appDBContext.Users.FindAsync(dto.UserId);
-            if (user == null) return false;
+            if (user == null) 
+            { 
+                return (false, "User not found.");
+            }
+            // Normalize custom domain: trim + lowercase
+            string? normDomain = dto.CustomDomain?.Trim();
+            if (!string.IsNullOrEmpty(normDomain))
+            {
+                normDomain = normDomain.ToLowerInvariant();
 
-            user.Job = dto.Job;
-            await _appDBContext.SaveChangesAsync();
-            return true;
+                //  validate pattern: a-z0-9- only, 3-63 chars
+                var rgx = new Regex(@"^[a-z0-9]([a-z0-9-]{1,61}[a-z0-9])?$");
+                if (!rgx.IsMatch(normDomain))
+                    return (false, "Custom domain is invalid. Use 3-63 chars [a-z0-9-], no spaces.");
+                //check duplicated
+                bool existed = await _appDBContext.Users
+                          .AnyAsync(u => u.CustomerDomain != null &&
+                         u.CustomerDomain.ToLower() == normDomain &&
+                         u.UserId != dto.UserId);
+                if (existed)
+                {
+                    return (false, "Customer domain is already taken.");
+                }
+            }
+                // Update fields
+                user.Job = dto.Job;
+                user.NickName = dto.Nickname;
+                user.UserImage = dto.UserImage;
+                user.Description = dto.Description;
+                user.CustomerDomain = string.IsNullOrEmpty(normDomain) ? null : normDomain;
+
+                await _appDBContext.SaveChangesAsync();
+                return (true, null);
+            }
         }
     }
-}
+

@@ -48,7 +48,6 @@ namespace BioLinker.Service
                 Title = entity.Title,
                 Description = entity.Description,
                 Avatar = entity.Avatar,
-                CustomerDomain = entity.CustomerDomain,
                 Status = entity.Status,
                 CreatedAt = entity.CreatedAt
             };
@@ -67,7 +66,6 @@ namespace BioLinker.Service
                 Title = dto.Title ?? template.Name,
                 Description = dto.Description ?? template.Description,
                 Avatar = null,
-                CustomerDomain = dto.CustomerDomain ?? "",
                 Status = dto.Status ?? "Active",
                 CreatedAt = DateTime.UtcNow
             };
@@ -131,7 +129,6 @@ namespace BioLinker.Service
                 Title = dto.Title ?? template.Name,
                 Description = dto.Description ?? template.Description,
                 Avatar = null,
-                CustomerDomain = dto.CustomerDomain ?? "",
                 Status = dto.Status ?? "Active",
                 CreatedAt = DateTime.UtcNow,
                 StyleId = styleId,
@@ -169,7 +166,6 @@ namespace BioLinker.Service
                 Title = newBio.Title,
                 Description = newBio.Description,
                 Avatar = newBio.Avatar,
-                CustomerDomain = newBio.CustomerDomain,
                 Status = newBio.Status,
                 CreatedAt = newBio.CreatedAt,
 
@@ -234,7 +230,6 @@ namespace BioLinker.Service
                 Title = b.Title,
                 Description = b.Description,
                 Avatar = b.Avatar,
-                CustomerDomain = b.CustomerDomain,
                 Status = b.Status,
                 CreatedAt = b.CreatedAt
             });
@@ -291,7 +286,6 @@ namespace BioLinker.Service
                 Title = bio.Title,
                 Description = bio.Description,
                 Avatar = bio.Avatar,
-                CustomerDomain = bio.CustomerDomain,
                 Status = bio.Status,
                 CreatedAt = bio.CreatedAt,
                 Background = background,
@@ -309,7 +303,6 @@ namespace BioLinker.Service
             bio.Title = dto.Title ?? bio.Title;
             bio.Description = dto.Description ?? bio.Description;
             bio.Avatar = dto.Avatar ?? bio.Avatar;
-            bio.CustomerDomain = dto.CustomerDomain ?? bio.CustomerDomain;
             bio.Status = dto.Status ?? bio.Status;
 
             await _repo.UpdateAsync(bio);
@@ -320,7 +313,6 @@ namespace BioLinker.Service
                 Title = bio.Title,
                 Description = bio.Description,
                 Avatar = bio.Avatar,
-                CustomerDomain = bio.CustomerDomain,
                 Status = bio.Status,
                 CreatedAt = bio.CreatedAt
             };
@@ -336,7 +328,6 @@ namespace BioLinker.Service
                 bio.Title = dto.BioPage.Title ?? bio.Title;
                 bio.Description = dto.BioPage.Description ?? bio.Description;
                 bio.Avatar = dto.BioPage.Avatar ?? bio.Avatar;
-                bio.CustomerDomain = dto.BioPage.CustomerDomain ?? bio.CustomerDomain;
                 bio.Status = dto.BioPage.Status ?? bio.Status;
             }
 

@@ -47,7 +47,7 @@ namespace BioLinker.Controllers.User
             {
                 var response = await _authService.LoginAsync(request);
 
-                // Sai email hoặc mật khẩu -> 401
+                //  401
                 if (response == null)
                     return Unauthorized(new { error = "Invalid email or password." });
 
@@ -183,21 +183,16 @@ namespace BioLinker.Controllers.User
             return Ok("Role updated successfully.");
         }
 
-        //update job
-        [HttpPut("update-job")]
-        public async Task<IActionResult> UpdateJob([FromBody] JobUpdate request)
+        //update profile customize (job, UserImage, NickName, Description, CustomerDomain)
+        [HttpPatch("profile-customize")]
+        public async Task<IActionResult> UpdateProfileCustomize([FromBody] ProfileCustomizeUpdate dto)
         {
-            if (string.IsNullOrEmpty(request.UserId) || string.IsNullOrEmpty(request.Job))
-                return BadRequest("UserId and Job are required");
-
-            var result = await _authService.UpdateUserJobAsync(request);
-            if (!result) return NotFound("User not found");
-
-            return Ok(new
+            var (ok, error) = await _authService.UpdateUserProfileCustomizeAsync(dto);
+            if (!ok) 
             {
-                message = "Job updated successfully",
-                job = request.Job
-            });
+                return BadRequest(new { error });
+            }
+            return Ok(new { message = "Profile updated successfully." });
         }
 
     }
