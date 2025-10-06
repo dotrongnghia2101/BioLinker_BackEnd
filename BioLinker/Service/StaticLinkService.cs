@@ -68,6 +68,7 @@ namespace BioLinker.Service
             current.Icon = dto.Icon ?? current.Icon;
             current.Platform = dto.Platform ?? current.Platform;
             current.DefaultUrl = dto.DefaultUrl ?? current.DefaultUrl;
+            current.Status = dto.Status ?? current.Status;
 
             await _repo.UpdateAsync(current);
             return true;
