@@ -19,14 +19,15 @@ namespace BioLinker.Service
         private readonly IRoleRepository _roleRepository;
         private readonly IUserRoleRepository  _userRoleRepository;
         private readonly AppDBContext _appDBContext;
-
+        private readonly IEmailVerificationService _emailVerificationService;
         public AuthService(IUserRepository userRepository, 
                JwtService jwtService, 
                IPasswordHasher<User> passwordHasher, 
                IConfiguration configuration, 
                IRoleRepository roleRepository, 
                IUserRoleRepository userRoleRepository,
-               AppDBContext appDBContext)
+               AppDBContext appDBContext,
+               IEmailVerificationService emailVerificationService)
         {
             _userRepository = userRepository;
             _jwtService = jwtService;
@@ -35,6 +36,7 @@ namespace BioLinker.Service
             _roleRepository = roleRepository;
             _userRoleRepository = userRoleRepository;
             _appDBContext = appDBContext;
+            _emailVerificationService = emailVerificationService;
         }
 
         //login google
@@ -170,7 +172,7 @@ namespace BioLinker.Service
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 FullName = $"{request.FirstName} {request.LastName}",
-                IsActive = true, // ve sau co them xac thuc
+                IsActive = false, // ve sau co them xac thuc
                 Gender = request.Gender,
                 DateOfBirth = request.DateOfBirth,
                 IsGoogle = false,
@@ -179,6 +181,7 @@ namespace BioLinker.Service
             user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
             //luu vao database
             await _userRepository.AddUserAsync(user);
+
             var defaultRole = await _roleRepository.GetByNameAsync("FreeUser");
             if (defaultRole == null)
             {
@@ -194,10 +197,22 @@ namespace BioLinker.Service
             };
 
             await _userRoleRepository.AddAsync(userRole);
+
+            try
+            {
+                // inject qua constructor: IEmailVerificationService _emailVerificationService
+                await _emailVerificationService.SendEmailConfirmationAsync(user.Email!);
+            }
+            catch (Exception ex)
+            {
+                // không làm fail toàn bộ flow nếu lỗi gửi mail
+                Console.WriteLine($"Email send failed: {ex.Message}");
+            }
+
             return new RegisterResponse
             {
                 UserId = user.UserId,
-                Message = "User register successfully",
+                Message = "User registered successfully. Please check your email to verify your account.",
             };
 
         }

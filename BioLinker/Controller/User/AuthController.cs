@@ -14,11 +14,13 @@ namespace BioLinker.Controllers.User
     {
         private readonly IAuthService _authService;
         private readonly JwtService _jwtService;
+        private readonly IEmailVerificationService _emailVerificationService;
 
-        public AuthController(IAuthService authService, JwtService jwtService)
+        public AuthController(IAuthService authService, JwtService jwtService , IEmailVerificationService emailVerificationService)
         {
             _authService = authService;
             _jwtService = jwtService;
+            _emailVerificationService = emailVerificationService;
         }
 
         //dang ki nguoi dung moi
@@ -193,6 +195,29 @@ namespace BioLinker.Controllers.User
                 return BadRequest(new { error });
             }
             return Ok(new { message = "Profile updated successfully." });
+        }
+
+        [HttpPost("email/send")]
+        public async Task<IActionResult> SendCode([FromBody] EmailSend dto)
+        {
+            if (string.IsNullOrEmpty(dto.Email))
+                return BadRequest(new { message = "Email cannot be empty." });
+
+            await _emailVerificationService.SendEmailConfirmationAsync(dto.Email);
+            return Ok(new { message = "Verification code sent to your email." });
+        }
+
+        [HttpPost("confirm")]
+        public async Task<IActionResult> ConfirmEmail([FromBody] EmailConfirmation dto)
+        {
+            if (string.IsNullOrEmpty(dto.Email) || string.IsNullOrEmpty(dto.Code))
+                return BadRequest(new { message = "Email and code are required." });
+
+            var success = await _emailVerificationService.ConfirmEmailAsync(dto);
+            if (!success)
+                return BadRequest(new { message = "Invalid or expired code." });
+
+            return Ok(new { message = "Email verified successfully." });
         }
 
     }
