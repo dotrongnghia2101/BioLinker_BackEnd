@@ -13,6 +13,5 @@ namespace BioLinker.DTO
         public string? LastName { get; set; }
         public string? Gender { get; set; }
         public DateTime? DateOfBirth { get; set; }
-        public bool? IsGoogle { get; set; }
     }
 }

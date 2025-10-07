@@ -155,7 +155,7 @@ namespace BioLinker.Service
         }
 
         //register
-        public async Task<string> RegisterAsync(Register request)
+        public async Task<RegisterResponse?> RegisterAsync(Register request)
         {
             //check mail da co hay chua
             var existUser = await _userRepository.GetByEmailAsync(request.Email);
@@ -194,7 +194,12 @@ namespace BioLinker.Service
             };
 
             await _userRoleRepository.AddAsync(userRole);
-            return "User registered successfully.";
+            return new RegisterResponse
+            {
+                UserId = user.UserId,
+                Message = "User register successfully",
+            };
+
         }
 
         //reset password

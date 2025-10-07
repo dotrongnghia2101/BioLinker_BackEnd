@@ -6,7 +6,7 @@ namespace BioLinker.Service
     {
         Task<LoginResponse?> LoginAsync(Login request);
         Task<LoginResponse> GoogleLoginAsync(GoogleAuthSettings request);
-        Task<string> RegisterAsync(Register request);
+        Task<RegisterResponse?> RegisterAsync(Register request);
 
         Task<bool> ResetPasswordAsync(ResetPassword dto);
         Task<bool> UpdateRoleAsync(UpdateRole dto);
