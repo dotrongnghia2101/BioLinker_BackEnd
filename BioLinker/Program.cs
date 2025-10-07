@@ -54,91 +54,46 @@ builder.Services.AddScoped<IBioPageRepository, BioPageRepository>();
 builder.Services.AddScoped<ITemplateDetailRepository, TemplateDetailRepository>();
 builder.Services.AddScoped<IStaticLinkRepository, StaticLinkRepository>();
 
-// ==================== CAU HINH AUTHENTICATION (JWT + FACEBOOK) ====================
-//builder.Services.AddAuthentication(options =>
-//{
-//    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme; // default la JWT
-//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-//})
-//.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-//{
-//    var jwtConfig = builder.Configuration.GetSection("Jwt");
-//    var key = Encoding.UTF8.GetBytes(jwtConfig["Key"]!);
+// ==================== AUTHENTICATION (JWT + FACEBOOK) ====================
 
-//    options.SaveToken = true;
-//    options.TokenValidationParameters = new TokenValidationParameters
-//    {
-//        ValidateIssuer = true,
-//        ValidateAudience = false,
-//        ValidateLifetime = true,
-//        ValidateIssuerSigningKey = true,
-//        ValidIssuer = jwtConfig["Issuer"],
-//        IssuerSigningKey = new SymmetricSecurityKey(key),
-//        RoleClaimType = ClaimTypes.Role
-//    };
-
-//    options.Events = new JwtBearerEvents
-//    {
-//        OnMessageReceived = context =>
-//        {
-//            var token = context.Request.Cookies["jwt"];
-//            if (!string.IsNullOrEmpty(token))
-//            {
-//                context.Token = token;
-//            }
-//            return Task.CompletedTask;
-//        }
-//    };
-//})
-//.AddCookie("Cookies") // them cookie de giu session khi login bang facebook
-//.AddFacebook("Facebook", options =>
-//{
-//    options.AppId = builder.Configuration["Authentication:Facebook:AppId"];
-//    options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
-//    options.CallbackPath = "/signin-facebook";
-//    options.SaveTokens = true;
-//    options.Scope.Add("email");
-//    options.Fields.Add("name");
-//    options.Fields.Add("email");
-//});
 builder.Services.AddAuthentication(options =>
 {
-    // Khi chưa xác định thì mặc định dùng JWT cho API
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-
-    // Nếu có challenge từ Facebook thì nó sẽ override
     options.DefaultChallengeScheme = "Facebook";
 })
-// Cookie (rất quan trọng cho OAuth correlation)
+// Cookie dùng để giữ session OAuth (bắt buộc cho Facebook)
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, cookieOptions =>
 {
     cookieOptions.Cookie.Name = ".BioLinker.Auth";
-    cookieOptions.Cookie.HttpOnly = true;
-    if (builder.Environment.IsDevelopment())
-    {
-        cookieOptions.Cookie.SameSite = SameSiteMode.Lax;
-        cookieOptions.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-    }
-    else
-    {
+    cookieOptions.Cookie.HttpOnly = true;  
+        //  Bắt buộc cho Render vì Facebook yêu cầu HTTPS thật
         cookieOptions.Cookie.SameSite = SameSiteMode.None;
         cookieOptions.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    }
 })
- //Facebook OAuth
+// FACEBOOK OAUTH CONFIG
 .AddFacebook("Facebook", options =>
 {
-    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; // phải chỉ rõ
+    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.AppId = builder.Configuration["Authentication:Facebook:AppId"];
     options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
-    options.CallbackPath = "/api/auth/signin-facebook"; // phải khớp Facebook Dev Console
+    options.CallbackPath = "/api/auth/signin-facebook"; // ⚠ phải khớp với Meta Developer
     options.SaveTokens = true;
     options.Scope.Add("email");
     options.Fields.Add("name");
     options.Fields.Add("email");
+
+    // ⚙ Fix tự động chuyển http -> https khi redirect đến Facebook
+    options.Events = new Microsoft.AspNetCore.Authentication.OAuth.OAuthEvents
+    {
+        OnRedirectToAuthorizationEndpoint = context =>
+        {
+            var httpsUrl = context.RedirectUri.Replace("http://", "https://");
+            context.Response.Redirect(httpsUrl);
+            return Task.CompletedTask;
+        }
+    };
 })
-// JWT cho API
+// JWT CHO API
 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, jwtOptions =>
 {
     var jwtConfig = builder.Configuration.GetSection("Jwt");
@@ -160,12 +115,9 @@ builder.Services.AddAuthentication(options =>
     {
         OnMessageReceived = context =>
         {
-            // Nếu token được lưu trong cookie "jwt"
             var token = context.Request.Cookies["jwt"];
             if (!string.IsNullOrEmpty(token))
-            {
                 context.Token = token;
-            }
             return Task.CompletedTask;
         }
     };
