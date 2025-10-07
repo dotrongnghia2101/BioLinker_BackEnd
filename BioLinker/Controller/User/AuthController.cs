@@ -1,6 +1,7 @@
 ﻿using BioLinker.DTO;
 using BioLinker.Service;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -141,14 +142,32 @@ namespace BioLinker.Controllers.User
         [HttpGet("facebook-response")]
         public async Task<IActionResult> FacebookResponse()
         {
-            var result = await HttpContext.AuthenticateAsync("External");
+            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             if (!result.Succeeded)
                 return BadRequest("Facebook login failed");
 
+            // Lấy thông tin người dùng từ Facebook
+            var claims = result.Principal.Claims.ToDictionary(c => c.Type, c => c.Value);
+
+            var email = claims.GetValueOrDefault(ClaimTypes.Email);
+            var name = claims.GetValueOrDefault(ClaimTypes.Name);
+
+            // ✅ Sinh JWT cho frontend (tùy bạn muốn redirect hay trả JSON)
+            var token = _jwtService.GenerateToken(new BioLinker.Enities.User
+            {
+                Email = email ?? "",
+                FullName = name ?? "",
+                IsGoogle = false,  // hoặc IsFacebook nếu bạn có field này
+                IsActive = true
+            });
+
+            // ✅ Option 1: Trả về JSON để frontend tự xử lý
             return Ok(new
             {
-                Name = result.Principal.Identity.Name,
-                Claims = result.Principal.Claims.Select(c => new { c.Type, c.Value })
+                Message = "Facebook login success",
+                Email = email,
+                Name = name,
+                Token = token
             });
         }
 
