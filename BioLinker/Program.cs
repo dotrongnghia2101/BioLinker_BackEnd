@@ -38,6 +38,8 @@ builder.Services.AddScoped<IStyleSettingsService, StyleSettingsService>();
 builder.Services.AddScoped<IBioPageService, BioPageService>();
 builder.Services.AddScoped<ITemplateDetailService, TemplateDetailService>();
 builder.Services.AddScoped<IStaticLinkService, StaticLinkService>();
+builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddScoped<IEmailVerificationService, EmailVerificationService>();
 
 //==================== CAU HINH REPOSITORY ====================
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -113,23 +115,29 @@ builder.Services.AddAuthentication(options =>
 {
     cookieOptions.Cookie.Name = ".BioLinker.Auth";
     cookieOptions.Cookie.HttpOnly = true;
-    //cookieOptions.Cookie.SameSite = SameSiteMode.None; // bắt buộc cho redirect OAuth
-    //cookieOptions.Cookie.SecurePolicy = CookieSecurePolicy.Always; // chỉ chạy HTTPS
-    cookieOptions.Cookie.SameSite = SameSiteMode.Lax;
-    cookieOptions.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    if (builder.Environment.IsDevelopment())
+    {
+        cookieOptions.Cookie.SameSite = SameSiteMode.Lax;
+        cookieOptions.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    }
+    else
+    {
+        cookieOptions.Cookie.SameSite = SameSiteMode.None;
+        cookieOptions.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    }
 })
-// Facebook OAuth
-//.AddFacebook("Facebook", options =>
-//{
-//    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; // phải chỉ rõ
-//    options.AppId = builder.Configuration["Authentication:Facebook:AppId"];
-//    options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
-//    options.CallbackPath = "/signin-facebook"; // phải khớp Facebook Dev Console
-//    options.SaveTokens = true;
-//    options.Scope.Add("email");
-//    options.Fields.Add("name");
-//    options.Fields.Add("email");
-//})
+ //Facebook OAuth
+.AddFacebook("Facebook", options =>
+{
+    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; // phải chỉ rõ
+    options.AppId = builder.Configuration["Authentication:Facebook:AppId"];
+    options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
+    options.CallbackPath = "/api/auth/signin-facebook"; // phải khớp Facebook Dev Console
+    options.SaveTokens = true;
+    options.Scope.Add("email");
+    options.Fields.Add("name");
+    options.Fields.Add("email");
+})
 // JWT cho API
 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, jwtOptions =>
 {
@@ -173,9 +181,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll", policy =>
     {
         policy
-              .AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+             .WithOrigins("https://biolinker.io.vn") // FE domain
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
