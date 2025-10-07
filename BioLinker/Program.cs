@@ -186,6 +186,16 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+app.Use((context, next) =>
+{
+    if (context.Request.Headers.ContainsKey("X-Forwarded-Proto") &&
+        context.Request.Headers["X-Forwarded-Proto"] == "https")
+    {
+        context.Request.Scheme = "https";
+    }
+    return next();
+});
+
 // Configure the HTTP request pipeline.
 app.UseSwagger();
 app.UseSwaggerUI(c =>
