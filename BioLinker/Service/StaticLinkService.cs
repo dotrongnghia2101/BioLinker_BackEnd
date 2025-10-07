@@ -30,7 +30,8 @@ namespace BioLinker.Service
                 Title = dto.Title,
                 Icon = dto.Icon,
                 Platform = dto.Platform,
-                DefaultUrl = dto.DefaultUrl
+                DefaultUrl = dto.DefaultUrl,
+                Status = dto.Status,
             };
             await _repo.AddAsync(entity);
             return ToDto(entity);
