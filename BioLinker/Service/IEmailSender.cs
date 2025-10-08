@@ -1,4 +1,6 @@
-﻿namespace BioLinker.Service
+﻿using System.Threading.Tasks;
+
+namespace BioLinker.Service
 {
     public interface IEmailSender
     {

@@ -155,7 +155,6 @@ namespace BioLinker.Controllers.User
                 return Redirect(redirectUrl);
             }
 
-
             return Ok(new FacebookLoginResponse
             {
                 Message = "Facebook login success",
