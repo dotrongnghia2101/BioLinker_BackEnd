@@ -139,26 +139,24 @@ namespace BioLinker.Controllers.User
             //  Sinh JWT cho frontend (tùy bạn muốn redirect hay trả JSON)
             var token = _jwtService.GenerateToken(user);
 
-            var redirectUrl = "https://biolinker.io.vn/login?isLoginFb=true";
+            var redirectUrl = $"https://biolinker.io.vn/login?isLoginFb=true?token={token}&email={Uri.EscapeDataString(email)}&userId={user.UserId}&name={Uri.EscapeDataString(user.FullName)}";
 
-            Response.Cookies.Append("jwt", token, new CookieOptions
+            var userAgent = Request.Headers["User-Agent"].ToString();
+            if (userAgent.Contains("Mozilla") || userAgent.Contains("Chrome") || userAgent.Contains("Safari"))
             {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Expires = DateTimeOffset.UtcNow.AddHours(1)
-            });
+                return Redirect(redirectUrl);
+            }
 
-            return Redirect(redirectUrl);
-            //return Ok(new FacebookLoginResponse
-            //{
-            //    Message = "Facebook login success",
-            //    Email = user.Email,
-            //    Name = user.FullName,
-            //    UserId = user.UserId,
-            //    Role = "FreeUser",
-            //    Token = token
-            //});
+
+            return Ok(new FacebookLoginResponse
+            {
+                Message = "Facebook login success",
+                Email = user.Email,
+                Name = user.FullName,
+                UserId = user.UserId,
+                Role = "FreeUser",
+                Token = token
+            });
         }
 
         //reset mat khau
