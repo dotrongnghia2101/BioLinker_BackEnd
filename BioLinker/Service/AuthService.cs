@@ -201,7 +201,7 @@ namespace BioLinker.Service
             try
             {
                 // inject qua constructor: IEmailVerificationService _emailVerificationService
-                await _emailVerificationService.SendEmailConfirmationAsync(user.Email!);
+                _ = Task.Run(() => _emailVerificationService.SendEmailConfirmationAsync(user.Email!));
             }
             catch (Exception ex)
             {
