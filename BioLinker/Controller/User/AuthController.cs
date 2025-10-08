@@ -25,6 +25,16 @@ namespace BioLinker.Controllers.User
             _emailVerificationService = emailVerificationService;
         }
 
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetUserById(string userId)
+        {
+            var userProfile = await _authService.GetUserProfileAsync(userId);
+            if (userProfile == null)
+                return NotFound(new { message = "User not found" });
+
+            return Ok(userProfile);
+        }
+
         //dang ki nguoi dung moi
         [HttpPost("Register")]
         public async Task<IActionResult> Register(Register request)

@@ -75,6 +75,31 @@ namespace BioLinker.Service
             return await _userRepository.GetByEmailAsync(email);
         }
 
+        public async Task<UserProfileResponse?> GetUserProfileAsync(string userId)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null) return null;
+
+            var role = user.UserRoles.FirstOrDefault()?.Role?.RoleName ?? "FreeUser";
+
+            return new UserProfileResponse
+            {
+                UserId = user.UserId,
+                FullName = user.FullName,
+                Email = user.Email,
+                Role = role,
+                PhoneNumber = user.PhoneNumber,
+                Gender = user.Gender,
+                UserImage = user.UserImage,
+                Job = user.Job,
+                DateOfBirth = user.DateOfBirth,
+                IsGoogle = user.IsGoogle,
+                CustomerDomain = user.CustomerDomain,
+                Description = user.Description,
+                NickName = user.NickName
+            };       
+        }
+
         //login google
         public async Task<LoginResponse> GoogleLoginAsync(GoogleAuthSettings request)
         {

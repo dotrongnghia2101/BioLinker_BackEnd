@@ -14,5 +14,6 @@ namespace BioLinker.Service
         Task<bool> UpdateRoleAsync(UpdateRole dto);
         Task<bool> UpdateProfileAsync(UpdateProfile dto);
         Task<(bool Success, string? Error)> UpdateUserProfileCustomizeAsync(ProfileCustomizeUpdate dto);
+        Task<UserProfileResponse?> GetUserProfileAsync(string userId);
     }
 }
