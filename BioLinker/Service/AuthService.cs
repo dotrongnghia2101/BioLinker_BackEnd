@@ -39,6 +39,42 @@ namespace BioLinker.Service
             _emailVerificationService = emailVerificationService;
         }
 
+        public async Task<User> AddFacebookUserAsync(string email, string name)
+        {
+            var user = new User
+            {
+                Email = email,
+                FullName = name,
+                IsActive = true,
+                IsGoogle = false
+            };
+
+            await _userRepository.AddUserAsync(user);
+
+            // Gán role mặc định FreeUser
+            var defaultRole = await _roleRepository.GetByNameAsync("FreeUser");
+            if (defaultRole != null)
+            {
+                user.UserRoles = new List<UserRole>
+                {
+                    new UserRole
+                    {
+                        UserId = user.UserId,
+                        RoleId = defaultRole.RoleId,
+                        StartDate = DateTime.UtcNow,
+                        EndDate = null
+                    }
+                };
+            }
+
+            return user;
+        }
+
+        public async Task<User?> GetUserByEmailAsync(string email)
+        {
+            return await _userRepository.GetByEmailAsync(email);
+        }
+
         //login google
         public async Task<LoginResponse> GoogleLoginAsync(GoogleAuthSettings request)
         {
