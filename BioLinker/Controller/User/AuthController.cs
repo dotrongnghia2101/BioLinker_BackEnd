@@ -158,7 +158,7 @@ namespace BioLinker.Controllers.User
             var user = await _authService.GetUserByEmailAsync(email);
             if (user == null)
             {
-                user = await _authService.AddFacebookUserAsync(email, name ?? "Facebook User");
+                user = await _authService.AddFacebookUserAsync(email, name ?? "Facebook User", pictureUrl);
             }
 
             //  Sinh JWT cho frontend (tùy bạn muốn redirect hay trả JSON)
