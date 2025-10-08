@@ -133,7 +133,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll", policy =>
     {
         policy
-             .WithOrigins("https://biolinker.io.vn") // FE domain
+             .WithOrigins(
+            "https://biolinker.io.vn",
+            "http://localhost:3000",      // FE local test (React)
+             "https://localhost:3000") // FE domain
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
