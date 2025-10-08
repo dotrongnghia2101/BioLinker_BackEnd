@@ -14,6 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,13 +79,50 @@ builder.Services.AddAuthentication(options =>
     options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
     options.CallbackPath = "/api/auth/signin-facebook"; // ⚠ phải khớp với Meta Developer
     options.SaveTokens = true;
+
+    // ✅ Scope và Fields để Facebook trả về đủ dữ liệu (email, avatar)
     options.Scope.Add("email");
+    options.Scope.Add("public_profile");
+    options.Fields.Add("id");
     options.Fields.Add("name");
     options.Fields.Add("email");
+    options.Fields.Add("picture");
 
-    // ⚙ Fix tự động chuyển http -> https khi redirect đến Facebook
+    // ✅ Sự kiện Facebook (đọc avatar và sửa redirect HTTPS)
     options.Events = new Microsoft.AspNetCore.Authentication.OAuth.OAuthEvents
     {
+        OnCreatingTicket = context =>
+        {
+            try
+            {
+                // Đảm bảo có using System.Text.Json
+                using var userJson = JsonDocument.Parse(context.User.GetRawText());
+                var root = userJson.RootElement;
+
+                string? pictureUrl = null;
+
+                if (root.TryGetProperty("picture", out var pictureProp) &&
+                    pictureProp.TryGetProperty("data", out var dataProp) &&
+                    dataProp.TryGetProperty("url", out var urlProp))
+                {
+                    pictureUrl = urlProp.GetString();
+                }
+
+                if (!string.IsNullOrEmpty(pictureUrl))
+                {
+                    var identity = (ClaimsIdentity)context.Principal.Identity!;
+                    identity.AddClaim(new Claim("picture", pictureUrl));
+                }
+            }
+            catch
+            {
+                // bỏ qua lỗi parse JSON
+            }
+
+            return Task.CompletedTask;
+        },
+
+        // ✅ Fix redirect HTTP → HTTPS khi chạy trên Render
         OnRedirectToAuthorizationEndpoint = context =>
         {
             var httpsUrl = context.RedirectUri.Replace("http://", "https://");
@@ -93,6 +131,7 @@ builder.Services.AddAuthentication(options =>
         }
     };
 })
+
 // JWT CHO API
 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, jwtOptions =>
 {

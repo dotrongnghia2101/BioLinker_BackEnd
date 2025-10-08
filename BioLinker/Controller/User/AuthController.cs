@@ -161,7 +161,7 @@ namespace BioLinker.Controllers.User
                 user = await _authService.AddFacebookUserAsync(email, name ?? "Facebook User", pictureUrl);
             }
 
-            //  Sinh JWT cho frontend (tùy bạn muốn redirect hay trả JSON)
+            //  JWT 
             var token = _jwtService.GenerateToken(user);
 
             var roleName = user.UserRoles?.FirstOrDefault()?.Role?.RoleName ?? "FreeUser";
