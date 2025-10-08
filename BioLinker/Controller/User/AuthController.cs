@@ -1,4 +1,5 @@
-﻿using BioLinker.DTO;
+﻿using Azure.Core;
+using BioLinker.DTO;
 using BioLinker.Enities;
 using BioLinker.Service;
 using Microsoft.AspNetCore.Authentication;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace BioLinker.Controllers.User
 {
@@ -134,10 +136,23 @@ namespace BioLinker.Controllers.User
 
             var email = claims.GetValueOrDefault(ClaimTypes.Email);
             var name = claims.GetValueOrDefault(ClaimTypes.Name);
+            var accessToken = claims.GetValueOrDefault("access_token");
 
 
             if (string.IsNullOrEmpty(email)) { 
                 return BadRequest("Facebook login failed: missing email permission");
+            }
+
+            string? pictureUrl = null;
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                using var httpClient = new HttpClient();
+                var response = await httpClient.GetAsync($"https://graph.facebook.com/me/picture?type=large&redirect=false&access_token={accessToken}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+                    pictureUrl = json.GetProperty("data").GetProperty("url").GetString();
+                }
             }
 
             var user = await _authService.GetUserByEmailAsync(email);
@@ -157,7 +172,8 @@ namespace BioLinker.Controllers.User
                 $"&email={Uri.EscapeDataString(email)}" +
                 $"&userId={user.UserId}" +
                 $"&name={Uri.EscapeDataString(user.FullName)}" +
-                $"&role={Uri.EscapeDataString(roleName)}";
+                $"&role={Uri.EscapeDataString(roleName)}"+
+                $"&image={Uri.EscapeDataString(user.UserImage ?? pictureUrl ?? "")}";
 
             var userAgent = Request.Headers["User-Agent"].ToString();
             if (userAgent.Contains("Mozilla") || userAgent.Contains("Chrome") || userAgent.Contains("Safari"))
@@ -172,7 +188,8 @@ namespace BioLinker.Controllers.User
                 Name = user.FullName,
                 UserId = user.UserId,
                 Role = roleName,
-                Token = token
+                Token = token,
+                UserImage = user.UserImage ?? pictureUrl
             });
         }
 
