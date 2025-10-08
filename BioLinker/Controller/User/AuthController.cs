@@ -1,4 +1,5 @@
 ﻿using BioLinker.DTO;
+using BioLinker.Enities;
 using BioLinker.Service;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -100,35 +101,7 @@ namespace BioLinker.Controllers.User
             }
         }
 
-        //Controller/User/AuthController
-        //[HttpPost("login-facbook")]
-        //public  IActionResult FacebookLogin()
-        //{
-        //    // Redirect user sang Facebook để login
-        //    var props = new AuthenticationProperties
-        //    {
-        //        RedirectUri = Url.Action("FacebookCallback")
-        //    };
-        //    return Challenge(props, "Facebook");
-        //}
-
-        //[HttpGet("facebook-callback")]
-        //public async Task<IActionResult> FacebookCallback()
-        //{
-        //    var result = await HttpContext.AuthenticateAsync("Cookies");
-
-        //    if (!result.Succeeded)
-        //        return Unauthorized("Facebook login failed");
-
-        //    var claims = result.Principal!.Claims.ToDictionary(c => c.Type, c => c.Value);
-
-        //    return Ok(new
-        //    {
-        //        FacebookId = claims.GetValueOrDefault(ClaimTypes.NameIdentifier),
-        //        Name = claims.GetValueOrDefault(ClaimTypes.Name),
-        //        Email = claims.GetValueOrDefault(ClaimTypes.Email)
-        //    });
-        //}
+        
         [HttpGet("login-facebook")]
         public IActionResult LoginFacebook()
         {
@@ -152,21 +125,27 @@ namespace BioLinker.Controllers.User
             var email = claims.GetValueOrDefault(ClaimTypes.Email);
             var name = claims.GetValueOrDefault(ClaimTypes.Name);
 
-            // ✅ Sinh JWT cho frontend (tùy bạn muốn redirect hay trả JSON)
-            var token = _jwtService.GenerateToken(new BioLinker.Enities.User
-            {
-                Email = email ?? "",
-                FullName = name ?? "",
-                IsGoogle = false,  // hoặc IsFacebook nếu bạn có field này
-                IsActive = true
-            });
 
-            // ✅ Option 1: Trả về JSON để frontend tự xử lý
-            return Ok(new
+            if (string.IsNullOrEmpty(email)) { 
+                return BadRequest("Facebook login failed: missing email permission");
+            }
+
+            var user = await _authService.GetUserByEmailAsync(email);
+            if (user == null)
+            {
+                user = await _authService.AddFacebookUserAsync(email, name ?? "Facebook User");
+            }
+
+            //  Sinh JWT cho frontend (tùy bạn muốn redirect hay trả JSON)
+            var token = _jwtService.GenerateToken(user);
+
+            return Ok(new FacebookLoginResponse
             {
                 Message = "Facebook login success",
-                Email = email,
-                Name = name,
+                Email = user.Email,
+                Name = user.FullName,
+                UserId = user.UserId,
+                Role = "FreeUser",
                 Token = token
             });
         }

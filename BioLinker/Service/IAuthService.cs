@@ -1,4 +1,5 @@
 ﻿using BioLinker.DTO;
+using BioLinker.Enities;
 
 namespace BioLinker.Service
 {
@@ -6,8 +7,9 @@ namespace BioLinker.Service
     {
         Task<LoginResponse?> LoginAsync(Login request);
         Task<LoginResponse> GoogleLoginAsync(GoogleAuthSettings request);
+        Task<User> AddFacebookUserAsync(string email, string name);
         Task<RegisterResponse?> RegisterAsync(Register request);
-
+        Task<User?> GetUserByEmailAsync(string email);
         Task<bool> ResetPasswordAsync(ResetPassword dto);
         Task<bool> UpdateRoleAsync(UpdateRole dto);
         Task<bool> UpdateProfileAsync(UpdateProfile dto);
