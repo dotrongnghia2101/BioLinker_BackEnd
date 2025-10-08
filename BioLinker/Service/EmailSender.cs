@@ -28,7 +28,10 @@ namespace BioLinker.Service
             _senderEmail = _configuration["Brevo:SenderEmail"] ?? "noreply@biolinker.app";
             _senderName = _configuration["Brevo:SenderName"] ?? "BioLinker";
 
-            Configuration.Default.ApiKey.Add("api-key", _apiKey);
+            if (!Configuration.Default.ApiKey.ContainsKey("api-key"))
+                Configuration.Default.ApiKey.Add("api-key", _apiKey);
+            else
+                Configuration.Default.ApiKey["api-key"] = _apiKey;
         }
 
         public async Task SendEmailAsync(string email, string subject, string htmlMessage)
