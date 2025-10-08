@@ -7,7 +7,7 @@ namespace BioLinker.Service
     {
         Task<LoginResponse?> LoginAsync(Login request);
         Task<LoginResponse> GoogleLoginAsync(GoogleAuthSettings request);
-        Task<User> AddFacebookUserAsync(string email, string name);
+        Task<User> AddFacebookUserAsync(string email, string name, string? pictureUrl);
         Task<RegisterResponse?> RegisterAsync(Register request);
         Task<User?> GetUserByEmailAsync(string email);
         Task<bool> ResetPasswordAsync(ResetPassword dto);

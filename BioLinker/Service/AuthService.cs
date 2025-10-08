@@ -39,14 +39,16 @@ namespace BioLinker.Service
             _emailVerificationService = emailVerificationService;
         }
 
-        public async Task<User> AddFacebookUserAsync(string email, string name)
+        public async Task<User> AddFacebookUserAsync(string email, string name, string? pictureUrl = null)
         {
             var user = new User
             {
                 Email = email,
                 FullName = name,
+                UserImage = pictureUrl,
                 IsActive = true,
-                IsGoogle = false
+                IsGoogle = false,
+                CreatedAt = DateTime.UtcNow
             };
 
             await _userRepository.AddUserAsync(user);
