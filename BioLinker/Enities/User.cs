@@ -32,5 +32,6 @@ namespace BioLinker.Enities
         public virtual ICollection<Template> CreatedTemplates { get; set; } = new List<Template>();
         public virtual ICollection<Marketplace> Marketplaces { get; set; } = new List<Marketplace>();
         public virtual ICollection<StaticLink> StaticLinks { get; set; } = new List<StaticLink>();
+        public virtual ICollection<CountBioClicked> CountBioClickeds { get; set; } = new List<CountBioClicked>();
     }
 }

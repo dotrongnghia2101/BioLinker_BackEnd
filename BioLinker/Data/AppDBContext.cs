@@ -29,6 +29,8 @@ namespace BioLinker.Data
         public virtual DbSet<Background> Backgrounds { get; set; }
         public virtual DbSet<StyleSettings> StyleSettings { get; set; }
         public virtual DbSet<TemplateDetail> TemplateDetails { get; set; }
+        public virtual DbSet<CountBioClicked> CountBioClickeds { get; set; }
+        public virtual DbSet<CountTemplateClicked> CountTemplateClickeds { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -694,6 +696,71 @@ namespace BioLinker.Data
                 entity.Property(e => e.CookieBanner)
                       .HasColumnName("cookieBanner");
 
+            });
+
+            // ========== COUNT BIO CLICKED ==========
+            modelBuilder.Entity<CountBioClicked>(entity =>
+            {
+                entity.ToTable("CountBioClicked");
+                entity.HasKey(e => e.CountBioClickedId)
+                      .HasName("PK_CountBioClicked");
+
+                entity.Property(e => e.CountBioClickedId)
+                      .HasColumnName("countBioClickedID");
+
+                entity.Property(e => e.UserId)
+                      .HasColumnName("userID");
+
+                entity.Property(e => e.BioPageId)
+                      .HasColumnName("bioPageID");
+
+                entity.Property(e => e.ClickedId)
+                      .HasMaxLength(255)
+                      .HasColumnName("clickedID");
+
+                entity.Property(e => e.ClickedTime)
+                      .HasColumnType("datetime")
+                      .HasColumnName("clickedTime");
+
+                entity.HasOne(cb => cb.User)
+                      .WithMany(u => u.CountBioClickeds)
+                      .HasForeignKey(cb => cb.UserId)
+                      .HasConstraintName("FK_CountBioClicked_User")
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(cb => cb.BioPage)
+                      .WithMany(bp => bp.CountBioClickeds)
+                      .HasForeignKey(cb => cb.BioPageId)
+                      .HasConstraintName("FK_CountBioClicked_BioPage")
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ========== COUNT TEMPLATE CLICKED ==========
+            modelBuilder.Entity<CountTemplateClicked>(entity =>
+            {
+                entity.ToTable("CountTemplateClicked");
+                entity.HasKey(e => e.CountTemplateClickedId)
+                      .HasName("PK_CountTemplateClicked");
+
+                entity.Property(e => e.CountTemplateClickedId)
+                      .HasColumnName("countTemplateClickedID");
+
+                entity.Property(e => e.TemplateId)
+                      .HasColumnName("templateID");
+
+                entity.Property(e => e.ClickedId)
+                      .HasMaxLength(255)
+                      .HasColumnName("clickedID");
+
+                entity.Property(e => e.ClickedTime)
+                      .HasColumnType("datetime")
+                      .HasColumnName("clickedTime");
+
+                entity.HasOne(ct => ct.Template)
+                      .WithMany(t => t.CountTemplateClickeds)
+                      .HasForeignKey(ct => ct.TemplateId)
+                      .HasConstraintName("FK_CountTemplateClicked_Template")
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
 
