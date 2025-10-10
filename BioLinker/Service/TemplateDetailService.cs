@@ -1,4 +1,4 @@
-﻿using BioLinker.DTO;
+﻿using BioLinker.DTO.TemplateDTO;
 using BioLinker.Enities;
 using BioLinker.Respository.TemplateRepo;
 

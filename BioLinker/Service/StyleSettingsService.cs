@@ -1,4 +1,4 @@
-﻿using BioLinker.DTO;
+﻿using BioLinker.DTO.BioDTO;
 using BioLinker.Enities;
 using BioLinker.Respository.BioPageRepo;
 

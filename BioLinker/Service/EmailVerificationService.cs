@@ -1,4 +1,4 @@
-﻿using BioLinker.DTO;
+﻿using BioLinker.DTO.UserDTO;
 using BioLinker.Respository.UserRepo;
 using System.Security.Cryptography;
 using System.Text;
