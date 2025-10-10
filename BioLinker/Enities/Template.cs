@@ -22,5 +22,6 @@
         public virtual ICollection<BioPage> BioPages { get; set; } = new List<BioPage>();
         public virtual ICollection<Marketplace> Marketplaces { get; set; } = new List<Marketplace>();
         public virtual ICollection<TemplateDetail> TemplateDetails { get; set; } = new List<TemplateDetail>();
+        public virtual ICollection<CountTemplateClicked> CountTemplateClickeds { get; set; } = new List<CountTemplateClicked>();
     }
 }
