@@ -1,4 +1,4 @@
-﻿using BioLinker.DTO;
+﻿using BioLinker.DTO.TemplateDTO;
 using BioLinker.Enities;
 using BioLinker.Respository.TemplateRepo;
 
@@ -12,7 +12,7 @@ namespace BioLinker.Service
         {
             _repo = repo;
         }
-        public async Task<TemplateDTO> CreateAsync(CreateTemplate dto)
+        public async Task<TemplateResponse> CreateAsync(CreateTemplate dto)
         {
             var template = new Template
             {
@@ -25,7 +25,7 @@ namespace BioLinker.Service
                 Status = "Active"
             };
             await _repo.AddAsync(template);
-            return new TemplateDTO
+            return new TemplateResponse
             {
                 TemplateId = template.TemplateId,
                 Name = template.Name,
@@ -44,10 +44,10 @@ namespace BioLinker.Service
             return true;
         }
 
-        public async Task<IEnumerable<TemplateDTO>> GetAllAsync()
+        public async Task<IEnumerable<TemplateResponse>> GetAllAsync()
         {
             var templates = await _repo.GetAllAsync();
-            return templates.Select(t => new TemplateDTO
+            return templates.Select(t => new TemplateResponse
             {
                 TemplateId = t.TemplateId,
                 Name = t.Name,
@@ -58,11 +58,11 @@ namespace BioLinker.Service
             });
         }
 
-        public async Task<TemplateDTO?> GetByIdAsync(string id)
+        public async Task<TemplateResponse?> GetByIdAsync(string id)
         {
             var t = await _repo.GetByIdAsync(id);
             if (t == null) return null;
-            return new TemplateDTO
+            return new TemplateResponse
             {
                 TemplateId = t.TemplateId,
                 Name = t.Name,
@@ -73,7 +73,7 @@ namespace BioLinker.Service
             };
         }
 
-        public async Task<TemplateDTO?> UpdateAsync(UpdateTemplate dto)
+        public async Task<TemplateResponse?> UpdateAsync(UpdateTemplate dto)
         {
             var template = await _repo.GetByIdAsync(dto.TemplateId);
             if (template == null) return null;
@@ -85,7 +85,7 @@ namespace BioLinker.Service
             template.Status = dto.Status ?? template.Status;
 
             await _repo.UpdateAsync(template);
-            return new TemplateDTO
+            return new TemplateResponse
             {
                 TemplateId = template.TemplateId,
                 Name = template.Name,

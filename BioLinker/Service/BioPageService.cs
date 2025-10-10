@@ -1,4 +1,5 @@
-﻿using BioLinker.DTO;
+﻿using BioLinker.DTO.BioDTO;
+using BioLinker.DTO.TemplateDTO;
 using BioLinker.Enities;
 using BioLinker.Respository.BioPageRepo;
 using BioLinker.Respository.TemplateRepo;
@@ -169,7 +170,7 @@ namespace BioLinker.Service
                 Status = newBio.Status,
                 CreatedAt = newBio.CreatedAt,
 
-                Template = new TemplateDTO
+                Template = new TemplateResponse
                 {
                     TemplateId = template.TemplateId,
                     Name = template.Name,

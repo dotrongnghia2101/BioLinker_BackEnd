@@ -1,5 +1,6 @@
 ﻿using Azure.Core;
 using BioLinker.DTO;
+using BioLinker.DTO.UserDTO;
 using BioLinker.Enities;
 using BioLinker.Service;
 using Microsoft.AspNetCore.Authentication;

@@ -1,4 +1,5 @@
 ﻿using BioLinker.DTO;
+using BioLinker.DTO.UserDTO;
 using BioLinker.Enities;
 
 namespace BioLinker.Service

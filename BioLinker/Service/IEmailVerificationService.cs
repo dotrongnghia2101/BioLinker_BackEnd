@@ -1,4 +1,4 @@
-﻿using BioLinker.DTO;
+﻿using BioLinker.DTO.UserDTO;
 
 namespace BioLinker.Service
 {

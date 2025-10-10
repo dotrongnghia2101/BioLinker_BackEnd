@@ -1,4 +1,5 @@
-﻿using BioLinker.DTO;
+﻿using BioLinker.DTO.TemplateDTO;
+
 
 namespace BioLinker.Service
 {

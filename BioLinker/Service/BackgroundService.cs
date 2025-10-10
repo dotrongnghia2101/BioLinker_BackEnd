@@ -1,9 +1,9 @@
-﻿    using BioLinker.DTO;
-    using BioLinker.Enities;
-    using BioLinker.Helper;
-    using BioLinker.Respository.BioPageRepo;
+﻿using BioLinker.DTO.BioDTO;
+using BioLinker.Enities;
+using BioLinker.Helper;
+using BioLinker.Respository.BioPageRepo;
 
-    namespace BioLinker.Service
+namespace BioLinker.Service
     {
         public class BackgroundService : IBackgroundService
         {

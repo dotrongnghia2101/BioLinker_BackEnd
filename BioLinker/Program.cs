@@ -1,7 +1,8 @@
 ﻿using BioLinker.Data;
-using BioLinker.DTO;
+using BioLinker.DTO.UserDTO;
 using BioLinker.Enities;
 using BioLinker.Respository.BioPageRepo;
+using BioLinker.Respository.ClickRepo;
 using BioLinker.Respository.LinkRepo;
 using BioLinker.Respository.TemplateRepo;
 using BioLinker.Respository.UserRepo;
@@ -41,6 +42,8 @@ builder.Services.AddScoped<ITemplateDetailService, TemplateDetailService>();
 builder.Services.AddScoped<IStaticLinkService, StaticLinkService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IEmailVerificationService, EmailVerificationService>();
+builder.Services.AddScoped<ICountTemplateClickedRepository, CountTemplateClickedRepository>();
+builder.Services.AddScoped<ICountTemplateClickedService, CountTemplateClickedService>();
 
 //==================== CAU HINH REPOSITORY ====================
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -54,7 +57,8 @@ builder.Services.AddScoped<IStyleSettingsRepository, StyleSettingsRepository>();
 builder.Services.AddScoped<IBioPageRepository, BioPageRepository>();
 builder.Services.AddScoped<ITemplateDetailRepository, TemplateDetailRepository>();
 builder.Services.AddScoped<IStaticLinkRepository, StaticLinkRepository>();
-
+builder.Services.AddScoped<ICountBioClickedRepository, CountBioClickedRepository>();
+builder.Services.AddScoped<ICountBioClickedService, CountBioClickedService>();
 // ==================== AUTHENTICATION (JWT + FACEBOOK) ====================
 
 builder.Services.AddAuthentication(options =>
@@ -80,7 +84,7 @@ builder.Services.AddAuthentication(options =>
     options.CallbackPath = "/api/auth/signin-facebook"; // ⚠ phải khớp với Meta Developer
     options.SaveTokens = true;
 
-    // ✅ Scope và Fields để Facebook trả về đủ dữ liệu (email, avatar)
+    //  Scope và Fields để Facebook trả về đủ dữ liệu (email, avatar)
     options.Scope.Add("email");
     options.Scope.Add("public_profile");
     options.Fields.Add("id");
@@ -88,7 +92,7 @@ builder.Services.AddAuthentication(options =>
     options.Fields.Add("email");
     options.Fields.Add("picture");
 
-    // ✅ Sự kiện Facebook (đọc avatar và sửa redirect HTTPS)
+    //  Sự kiện Facebook (đọc avatar và sửa redirect HTTPS)
     options.Events = new Microsoft.AspNetCore.Authentication.OAuth.OAuthEvents
     {
         OnCreatingTicket = context =>
@@ -122,7 +126,7 @@ builder.Services.AddAuthentication(options =>
             return Task.CompletedTask;
         },
 
-        // ✅ Fix redirect HTTP → HTTPS khi chạy trên Render
+        //  Fix redirect HTTP → HTTPS khi chạy trên Render
         OnRedirectToAuthorizationEndpoint = context =>
         {
             var httpsUrl = context.RedirectUri.Replace("http://", "https://");

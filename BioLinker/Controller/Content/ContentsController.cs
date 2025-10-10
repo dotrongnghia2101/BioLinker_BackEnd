@@ -1,4 +1,4 @@
-﻿using BioLinker.DTO;
+﻿using BioLinker.DTO.BioDTO;
 using BioLinker.Service;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http;

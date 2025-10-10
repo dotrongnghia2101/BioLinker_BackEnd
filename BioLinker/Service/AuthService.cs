@@ -1,6 +1,7 @@
 ﻿using Azure.Core;
 using BioLinker.Data;
 using BioLinker.DTO;
+using BioLinker.DTO.UserDTO;
 using BioLinker.Enities;
 using BioLinker.Respository.UserRepo;
 using Google.Apis.Auth;
