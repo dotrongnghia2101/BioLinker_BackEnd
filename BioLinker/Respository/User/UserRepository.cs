@@ -17,6 +17,15 @@ namespace BioLinker.Respository.UserRepo
             await _context.SaveChangesAsync();
         }
 
+        public async Task<List<string>> GetAllCustomDomainNamesAsync()
+        {
+            return await _context.Users
+                .Where(u => u.CustomerDomain != null && u.CustomerDomain != "")
+                .Select(u => u.CustomerDomain!)
+                .Distinct()
+                .ToListAsync();
+        }
+
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
             return await _context.Users.ToListAsync();
@@ -33,6 +42,14 @@ namespace BioLinker.Respository.UserRepo
         public async Task<User?> GetByIdAsync(string userId)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+        }
+
+        public async Task<string?> GetCustomDomainByUserIdAsync(string userId)
+        {
+            return await _context.Users
+                .Where(u => u.UserId == userId)
+                .Select(u => u.CustomerDomain)
+                .FirstOrDefaultAsync();
         }
 
         public async Task UpdateAsync(User user)
