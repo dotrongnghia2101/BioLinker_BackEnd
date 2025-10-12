@@ -38,8 +38,42 @@ namespace BioLinker.Controllers.User
             return Ok(userProfile);
         }
 
-        //dang ki nguoi dung moi
-        [HttpPost("Register")]
+        [HttpGet("domains")]
+        public async Task<IActionResult> GetCustomDomains([FromQuery] string? userId)
+        {
+            // Truong hop co truyen userId -> lay domain cua user do
+            if (!string.IsNullOrWhiteSpace(userId))
+            {
+                var domain = await _authService.GetCustomDomainByUserIdAsync(userId);
+
+                if (string.IsNullOrEmpty(domain))
+                {
+                    return Ok(new
+                    {
+                        success = false,
+                        message = "User does not have a custom domain."
+                    });
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    domain = domain
+                });
+            }
+
+            // Truong hop khong truyen userId -> lay tat ca domain
+            var domains = await _authService.GetAllCustomDomainNamesAsync();
+
+            return Ok(new
+            {
+                success = true,
+                domain = domains
+            });
+        }
+
+            //dang ki nguoi dung moi
+            [HttpPost("Register")]
         public async Task<IActionResult> Register(Register request)
         {
             try
