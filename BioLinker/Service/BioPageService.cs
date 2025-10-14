@@ -32,44 +32,122 @@ namespace BioLinker.Service
 
         public async Task<BioPageResponse> CreateAsync(CreateBioPage dto)
         {
-            var entity = new BioPage
+            using var transaction = await _repo.BeginTransactionAsync();
+            try
             {
-                UserId = dto.UserId,
-                TemplateId = dto.TemplateId,
-                Title = dto.Title,
-                Description = dto.Description,
-                Avatar = dto.Avatar,
-                BackgroundId = dto.BackgroundId,
-                CreatedAt = DateTime.UtcNow
-            };
-            await _repo.AddAsync(entity);
-            return new BioPageResponse
+                //  Tao Background
+                string? backgroundId = null;
+                if (dto.Background != null)
+                {
+                    var bg = await _backgroundService.CreateAsync(dto.Background);
+                    backgroundId = bg?.BackgroundId;
+                }
+
+                //  Tao Style
+                string? styleId = null;
+                if (dto.Style != null)
+                {
+                    var st = await _styleService.CreateAsync(dto.Style);
+                    styleId = st?.StyleId;
+                }
+
+                // Tao StyleSettings
+                string? styleSettingsId = null;
+                if (dto.StyleSettings != null)
+                {
+                    var ss = await _styleSettingsService.CreateAsync(dto.StyleSettings);
+                    styleSettingsId = ss?.StyleSettingsId;
+                }
+
+                //  Tao BioPage
+                var bio = new BioPage
+                {
+                    BioPageId = Guid.NewGuid().ToString(),
+                    UserId = dto.UserId,
+                    Title = dto.Title,
+                    Description = dto.Description,
+                    Avatar = dto.Avatar,
+                    Status = dto.Status,
+                    CreatedAt = DateTime.UtcNow,
+                    BackgroundId = backgroundId,
+                    StyleId = styleId,
+                    StyleSettingsId = styleSettingsId
+                };
+
+                await _repo.AddAsync(bio);
+
+                //  Tao Content
+                if (dto.Contents != null && dto.Contents.Any())
+                {
+                    foreach (var content in dto.Contents)
+                    {
+                        content.BioPageId = bio.BioPageId;
+                        await _contentService.CreateContent(content);
+                    }
+                }
+
+                await transaction.CommitAsync();
+
+                //  response
+                return new BioPageResponse
+                {
+                    BioPageId = bio.BioPageId,
+                    UserId = bio.UserId,
+                    Title = bio.Title,
+                    Description = bio.Description,
+                    Avatar = bio.Avatar,
+                    Status = bio.Status,
+                    CreatedAt = bio.CreatedAt,
+                    Background = dto.Background == null ? null : new BackgroundResponse
+                    {
+                        BackgroundId = backgroundId,
+                        Type = dto.Background.Type,
+                        Value = dto.Background.Value
+                    },
+
+                    Template = null,
+
+                    Style = dto.Style == null ? null : new StyleResponse
+                    {
+                        StyleId = styleId,
+                        Preset = dto.Style.Preset,
+                        LayoutMode = dto.Style.LayoutMode,
+                        ButtonShape = dto.Style.ButtonShape,
+                        ButtonColor = dto.Style.ButtonColor,
+                        IconColor = dto.Style.IconColor,
+                        BackgroundColor = dto.Style.BackgroundColor
+                    },
+                    StyleSettings = dto.StyleSettings == null ? null : new StyleSettingsResponse
+                    {
+                        StyleSettingsId = styleSettingsId,
+                        Thumbnail = dto.StyleSettings.Thumbnail,
+                        MetaTitle = dto.StyleSettings.MetaTitle,
+                        MetaDescription = dto.StyleSettings.MetaDescription,
+                        CookieBanner = dto.StyleSettings.CookieBanner
+                    },
+                    Contents = dto.Contents?.Select(c => new ContentResponse
+                    {
+                        ElementType = c.ElementType,
+                        Alignment = c.Alignment,
+                        Visible = c.Visible,
+                        Position = c.Position,
+                        Size = c.Size,
+                        Style = c.Style,
+                        Element = c.Element
+                    }).ToList()
+                };
+            }
+            catch
             {
-                BioPageId = entity.BioPageId,
-                Title = entity.Title,
-                Description = entity.Description,
-                Avatar = entity.Avatar,
-                Status = entity.Status,
-                CreatedAt = entity.CreatedAt
-            };
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<BioPageResponse?> CreateFromTemplateAsync(string templateId, CreateBioPageFromTemplate dto)
         {
             var template = await _templateRepo.GetByIdAsync(templateId);
             if (template == null) return null;
-
-            var newBio = new BioPage
-            {
-                BioPageId = Guid.NewGuid().ToString(),
-                UserId = dto.UserId,
-                TemplateId = template.TemplateId,
-                Title = dto.Title ?? template.Name,
-                Description = dto.Description ?? template.Description,
-                Avatar = null,
-                Status = dto.Status ?? "Active",
-                CreatedAt = DateTime.UtcNow
-            };
 
             // === Clone Style ===
             string? styleId = null;
@@ -122,7 +200,7 @@ namespace BioLinker.Service
                 styleSettingsId = newSetting.StyleSettingsId;
             }
             // luu bio
-            var newBios = new BioPage
+            var newBio = new BioPage
             {
                 BioPageId = Guid.NewGuid().ToString(),
                 UserId = dto.UserId,
@@ -137,7 +215,7 @@ namespace BioLinker.Service
                 StyleSettingsId = styleSettingsId
             };
 
-            await _repo.AddAsync(newBios);
+            await _repo.AddAsync(newBio);
 
             // template detail
             if (template.TemplateDetails != null && template.TemplateDetails.Any())
@@ -146,7 +224,7 @@ namespace BioLinker.Service
                 {
                     var newContent = new CreateContent
                     {
-                        BioPageId = newBios.BioPageId,
+                        BioPageId = newBio.BioPageId,
                         ElementType = item.ElementType,
                         Alignment = "center",
                         Visible = true,
@@ -295,6 +373,54 @@ namespace BioLinker.Service
                 Contents = contents
             };
         }
+
+        public async Task<IEnumerable<BioPageResponse>> GetByUserIdAsync(string userId)
+        {
+            var bios = await _repo.GetByUserIdAsync(userId);
+            return bios.Select(b => new BioPageResponse
+            {
+                BioPageId = b.BioPageId,
+                UserId = b.UserId,
+                Title = b.Title,
+                Description = b.Description,
+                Avatar = b.Avatar,
+                Status = b.Status,
+                CreatedAt = b.CreatedAt,
+                Background = b.Background == null ? null : new BackgroundResponse
+                {
+                    BackgroundId = b.Background.BackgroundId,
+                    Type = b.Background.Type,
+                    Value = b.Background.Value
+                },
+                Style = b.Style == null ? null : new StyleResponse
+                {
+                    StyleId = b.Style.StyleId,
+                    Preset = b.Style.Preset,
+                    LayoutMode = b.Style.LayoutMode,
+                    ButtonColor = b.Style.ButtonColor,
+                    IconColor = b.Style.IconColor,
+                    BackgroundColor = b.Style.BackgroundColor
+                },
+                StyleSettings = b.StyleSettings == null ? null : new StyleSettingsResponse
+                {
+                    StyleSettingsId = b.StyleSettings.StyleSettingsId,
+                    Thumbnail = b.StyleSettings.Thumbnail,
+                    MetaTitle = b.StyleSettings.MetaTitle,
+                    MetaDescription = b.StyleSettings.MetaDescription,
+                    CookieBanner = b.StyleSettings.CookieBanner
+                },
+                Contents = b.Contents.Select(c => new ContentResponse
+                {
+                    ContentId = c.ContentId,
+                    ElementType = c.ElementType,
+                    Position = c.Position,
+                    Size = c.Size,
+                    Style = c.Style,
+                    Element = c.Element
+                }).ToList()
+            });
+        }
+        
 
         public async Task<BioPageResponse?> UpdateAsync(string id, UpdateBioPage dto)
         {

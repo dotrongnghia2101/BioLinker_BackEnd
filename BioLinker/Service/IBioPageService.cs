@@ -6,6 +6,7 @@ namespace BioLinker.Service
     {
         Task<BioPageResponse?> GetByIdAsync(string id);
         Task<IEnumerable<BioPageResponse>> GetAllAsync();
+        Task<IEnumerable<BioPageResponse>> GetByUserIdAsync(string userId);
         Task<BioPageResponse> CreateAsync(CreateBioPage dto);
         Task<BioPageResponse?> UpdateAsync(string id, UpdateBioPage dto);
         Task<bool> DeleteAsync(string id);
