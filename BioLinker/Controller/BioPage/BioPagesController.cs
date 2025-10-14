@@ -31,6 +31,19 @@ namespace BioLinker.Controller.BioPage
             return Ok(bio);
         }
 
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetBioPagesByUser(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+                return BadRequest(new { message = " Invalid UserId " });
+
+            var result = await _service.GetByUserIdAsync(userId);
+            if (result == null || !result.Any())
+                return NotFound(new { message = "Not found bio of user" });
+
+            return Ok(result);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateBioPage dto)
         {
