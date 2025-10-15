@@ -59,8 +59,8 @@ builder.Services.AddScoped<ITemplateDetailRepository, TemplateDetailRepository>(
 builder.Services.AddScoped<IStaticLinkRepository, StaticLinkRepository>();
 builder.Services.AddScoped<ICountBioClickedRepository, CountBioClickedRepository>();
 builder.Services.AddScoped<ICountBioClickedService, CountBioClickedService>();
-// ==================== AUTHENTICATION (JWT + FACEBOOK) ====================
 
+// ==================== AUTHENTICATION (JWT + FACEBOOK) ====================
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
