@@ -19,7 +19,8 @@ namespace BioLinker.Service
             Title = x.Title,
             Icon = x.Icon,
             Platform = x.Platform,
-            DefaultUrl = x.DefaultUrl
+            DefaultUrl = x.DefaultUrl,
+            Status = x.Status
         };
         public async Task<StaticLinkResponse> CreateAsync(StaticLinkCreate dto)
         {
