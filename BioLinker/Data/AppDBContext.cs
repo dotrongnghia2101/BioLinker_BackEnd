@@ -93,6 +93,8 @@ namespace BioLinker.Data
                      .HasColumnName("description");
                 entity.Property(e => e.NickName)
                     .HasColumnName("nickName");
+                entity.Property(e => e.IsBeginner)
+                     .HasColumnName("isBeginner");
             });
 
             // ========== ROLE ==========

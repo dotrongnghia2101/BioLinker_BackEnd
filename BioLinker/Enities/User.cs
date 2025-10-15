@@ -21,6 +21,7 @@ namespace BioLinker.Enities
         public DateTime? DateOfBirth { get; set; }
         public bool? IsGoogle { get; set; }
         public string? CustomerDomain { get; set; } 
+        public bool? IsBeginner { get; set; } = true;
 
         // Navigation
         //public virtual ICollection<SubscriptionPlan> Subscriptions { get; set; } = new List<SubscriptionPlan>();

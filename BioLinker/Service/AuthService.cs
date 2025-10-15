@@ -49,10 +49,9 @@ namespace BioLinker.Service
                 UserImage = pictureUrl,
                 IsActive = true,
                 IsGoogle = false,
+                IsBeginner = true,
                 CreatedAt = DateTime.UtcNow
             };
-
-            await _userRepository.AddUserAsync(user);
 
             // Gán role mặc định FreeUser
             var defaultRole = await _roleRepository.GetByNameAsync("FreeUser");
@@ -69,6 +68,8 @@ namespace BioLinker.Service
                     }
                 };
             }
+
+            await _userRepository.AddUserAsync(user);
 
             return user;
         }
@@ -109,7 +110,8 @@ namespace BioLinker.Service
                 IsGoogle = user.IsGoogle,
                 CustomerDomain = user.CustomerDomain,
                 Description = user.Description,
-                NickName = user.NickName
+                NickName = user.NickName,
+                IsBeginner = user.IsBeginner,
             };       
         }
 
@@ -149,6 +151,7 @@ namespace BioLinker.Service
                     DateOfBirth = null,
                     NickName = null,
                     Gender = null,
+                    IsBeginner = true,
                 };
 
                 await _userRepository.AddUserAsync(newUser);
@@ -227,6 +230,7 @@ namespace BioLinker.Service
                 Description = user.Description,
                 CustomerDomain = user.CustomerDomain,
                 IsGoogle = user.IsGoogle,
+                IsBeginner = user.IsBeginner,
             };
         }
 
@@ -250,6 +254,7 @@ namespace BioLinker.Service
                 Gender = request.Gender,
                 DateOfBirth = request.DateOfBirth,
                 IsGoogle = false,
+                IsBeginner = true,
             };
             //hash password
             user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
@@ -384,6 +389,7 @@ namespace BioLinker.Service
                 user.UserImage = dto.UserImage;
                 user.Description = dto.Description;
                 user.CustomerDomain = string.IsNullOrEmpty(normDomain) ? null : normDomain;
+                user.IsBeginner = dto.IsBeginner;
 
                 await _appDBContext.SaveChangesAsync();
                 return (true, null);

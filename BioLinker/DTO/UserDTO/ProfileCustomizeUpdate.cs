@@ -8,5 +8,6 @@
         public string? Description { get; set; }
         public string? CustomDomain { get; set; }
         public string? UserImage { get; set; }
+        public bool? IsBeginner { get; set; }
     }
 }

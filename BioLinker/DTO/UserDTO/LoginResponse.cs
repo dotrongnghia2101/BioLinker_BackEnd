@@ -16,6 +16,7 @@
         public string? CustomerDomain { get; set; }
         public string? Description { get; set; }
         public string? NickName { get; set; }
+        public bool? IsBeginner { get; set; }
 
     }
 }
