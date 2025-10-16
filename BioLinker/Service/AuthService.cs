@@ -145,12 +145,6 @@ namespace BioLinker.Service
                     IsActive = true,
                     CreatedAt = DateTime.Now,
                     IsGoogle = true,
-                    CustomerDomain = null,
-                    Job = null,
-                    Description = null,
-                    DateOfBirth = null,
-                    NickName = null,
-                    Gender = null,
                     IsBeginner = true,
                 };
 
