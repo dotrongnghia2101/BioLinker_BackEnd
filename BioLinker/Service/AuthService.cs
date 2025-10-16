@@ -145,12 +145,6 @@ namespace BioLinker.Service
                     IsActive = true,
                     CreatedAt = DateTime.Now,
                     IsGoogle = true,
-                    CustomerDomain = null,
-                    Job = null,
-                    Description = null,
-                    DateOfBirth = null,
-                    NickName = null,
-                    Gender = null,
                     IsBeginner = true,
                 };
 
@@ -187,6 +181,12 @@ namespace BioLinker.Service
                 PhoneNumber = existingUser.PhoneNumber,
                 Role = roleName,
                 Gender = existingUser.Gender,
+                IsBeginner = existingUser.IsBeginner,
+                IsGoogle = existingUser.IsGoogle,
+                CustomerDomain = existingUser.CustomerDomain,
+                Description = existingUser.Description,
+                NickName = existingUser.NickName,
+                UserImage = existingUser.UserImage,
             };
         }
 
