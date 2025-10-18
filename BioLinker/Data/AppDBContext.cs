@@ -222,14 +222,15 @@ namespace BioLinker.Data
                       .HasColumnName("icon");
                 entity.Property(e => e.Position)
                       .HasColumnName("position");
-                entity.Property(e => e.ClickCount)
-                      .HasColumnName("clickCount");
                 entity.Property(e => e.Platform)
                       .HasMaxLength(100)
                       .HasColumnName("platform");
                 entity.Property(e => e.LinkType)
                       .HasMaxLength(50)
                       .HasColumnName("linkType");
+                entity.Property(e => e.StaticLinkId)
+                      .HasColumnName("staticLinkID")
+                      .HasMaxLength(50);
 
                 entity.HasOne(l => l.BioPage)
                       .WithMany(bp => bp.Links)
