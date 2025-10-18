@@ -1,6 +1,7 @@
 ﻿using BioLinker.Data;
 using BioLinker.DTO.UserDTO;
 using BioLinker.Enities;
+using BioLinker.Helper;
 using BioLinker.Respository.BioPageRepo;
 using BioLinker.Respository.ClickRepo;
 using BioLinker.Respository.LinkRepo;
@@ -42,8 +43,11 @@ builder.Services.AddScoped<ITemplateDetailService, TemplateDetailService>();
 builder.Services.AddScoped<IStaticLinkService, StaticLinkService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IEmailVerificationService, EmailVerificationService>();
-builder.Services.AddScoped<ICountTemplateClickedRepository, CountTemplateClickedRepository>();
 builder.Services.AddScoped<ICountTemplateClickedService, CountTemplateClickedService>();
+builder.Services.AddScoped<ICountBioClickedService, CountBioClickedService>();
+builder.Services.AddScoped<IAnalyticLinkService, AnalyticLinkService>();
+builder.Services.AddSignalR();
+builder.Services.AddScoped<ILinkService, LinkService>();
 
 //==================== CAU HINH REPOSITORY ====================
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -58,7 +62,9 @@ builder.Services.AddScoped<IBioPageRepository, BioPageRepository>();
 builder.Services.AddScoped<ITemplateDetailRepository, TemplateDetailRepository>();
 builder.Services.AddScoped<IStaticLinkRepository, StaticLinkRepository>();
 builder.Services.AddScoped<ICountBioClickedRepository, CountBioClickedRepository>();
-builder.Services.AddScoped<ICountBioClickedService, CountBioClickedService>();
+builder.Services.AddScoped<ICountTemplateClickedRepository, CountTemplateClickedRepository>();
+builder.Services.AddScoped<IAnalyticLinkRepository, AnalyticLinkRepository>();
+builder.Services.AddScoped<ILinkRepository, LinkRepository>();
 
 // ==================== AUTHENTICATION (JWT + FACEBOOK) ====================
 builder.Services.AddAuthentication(options =>
@@ -262,5 +268,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<AnalyticsHub>("/hubs/analytics");
 
 app.Run();
