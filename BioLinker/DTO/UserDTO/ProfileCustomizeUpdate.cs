@@ -9,5 +9,6 @@
         public string? CustomDomain { get; set; }
         public string? UserImage { get; set; }
         public bool? IsBeginner { get; set; }
+        public string? BackgroundImage { get; set; }
     }
 }

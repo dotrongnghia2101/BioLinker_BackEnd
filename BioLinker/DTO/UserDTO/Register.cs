@@ -12,5 +12,6 @@ namespace BioLinker.DTO.UserDTO
         public string? LastName { get; set; }
         public string? Gender { get; set; }
         public DateTime? DateOfBirth { get; set; }
+
     }
 }

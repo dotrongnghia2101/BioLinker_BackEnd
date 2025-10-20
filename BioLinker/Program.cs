@@ -49,7 +49,8 @@ builder.Services.AddScoped<ICountBioClickedService, CountBioClickedService>();
 builder.Services.AddScoped<IAnalyticLinkService, AnalyticLinkService>();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<ILinkService, LinkService>();
-builder.Services.AddScoped<IUserTemplateService, IUserTemplateService>();
+builder.Services.AddScoped<IUserTemplateService, UserTemplateService>();
+builder.Services.AddScoped<IMarketplaceService, MarketplaceService>();
 
 //==================== CAU HINH REPOSITORY ====================
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -67,7 +68,8 @@ builder.Services.AddScoped<ICountBioClickedRepository, CountBioClickedRepository
 builder.Services.AddScoped<ICountTemplateClickedRepository, CountTemplateClickedRepository>();
 builder.Services.AddScoped<IAnalyticLinkRepository, AnalyticLinkRepository>();
 builder.Services.AddScoped<ILinkRepository, LinkRepository>();
-builder.Services.AddScoped<IUserTemplateRepository,IUserTemplateRepository>();
+builder.Services.AddScoped<IUserTemplateRepository,UserTemplateRepository>();
+builder.Services.AddScoped<IMarketplaceRepository, MarketplaceRepository>();
 
 // ==================== AUTHENTICATION (JWT + FACEBOOK) ====================
 builder.Services.AddAuthentication(options =>
