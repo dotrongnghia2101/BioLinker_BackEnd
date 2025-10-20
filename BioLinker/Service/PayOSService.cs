@@ -32,7 +32,7 @@ namespace BioLinker.Service
                 returnUrl = dto.ReturnUrl,
                 cancelUrl = dto.CancelUrl,
                 items = new[]
-               {
+                {
                     new {
                         name = dto.ItemName,
                         quantity = 1,
@@ -44,7 +44,6 @@ namespace BioLinker.Service
             string rawData = JsonSerializer.Serialize(body);
             string signature = GenerateHmacSignature(rawData, checksumKey);
 
-
             var request = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/v2/payment-requests")
             {
                 Content = new StringContent(rawData, Encoding.UTF8, "application/json")
@@ -53,12 +52,12 @@ namespace BioLinker.Service
             request.Headers.Add("x-api-key", apiKey);
             request.Headers.Add("x-checksum", signature);
 
-            _logger.LogInformation("Gửi yêu cầu PayOS: {payload}", rawData);
+            _logger.LogInformation("➡️ Gửi yêu cầu PayOS: {payload}", rawData);
 
             var response = await _http.SendAsync(request);
             var raw = await response.Content.ReadAsStringAsync();
 
-            _logger.LogInformation("Phản hồi PayOS: {raw}", raw);
+            _logger.LogInformation("⬅️ Phản hồi PayOS: {raw}", raw);
 
             //  Kiểm tra lỗi HTTP
             if (!response.IsSuccessStatusCode)
@@ -67,7 +66,6 @@ namespace BioLinker.Service
             using var doc = JsonDocument.Parse(raw);
             var root = doc.RootElement;
 
-            //  Kiểm tra xem có "data" không
             if (!root.TryGetProperty("data", out JsonElement data) || data.ValueKind != JsonValueKind.Object)
                 throw new Exception($"PayOS error: Response missing 'data' field. Raw: {raw}");
 
@@ -84,11 +82,25 @@ namespace BioLinker.Service
 
         public bool VerifyChecksum(string payload, string receivedChecksum)
         {
-            string key = _cfg["PayOS:ChecksumKey"]!;
-            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(key));
-            var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
-            string calc = BitConverter.ToString(hash).Replace("-", "").ToLower();
-            return calc == receivedChecksum.ToLower();
+            try
+            {
+                if (string.IsNullOrWhiteSpace(receivedChecksum))
+                    return false;
+
+                string key = _cfg["PayOS:ChecksumKey"]!;
+                using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(key));
+                var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
+                string calc = BitConverter.ToString(hash).Replace("-", "").ToLower();
+
+                bool match = calc == receivedChecksum.ToLower();
+                _logger.LogInformation("Xác minh chữ ký PayOS: {match}", match);
+                return match;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi xác minh checksum");
+                return false;
+            }
         }
 
         private string GenerateHmacSignature(string rawData, string secretKey)
