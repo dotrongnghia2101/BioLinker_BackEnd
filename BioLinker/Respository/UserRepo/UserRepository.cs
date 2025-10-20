@@ -1,5 +1,6 @@
 ﻿using BioLinker.Data;
-using BioLinker.Enities;
+using EntityUser = BioLinker.Enities.User;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace BioLinker.Respository.UserRepo
@@ -11,7 +12,7 @@ namespace BioLinker.Respository.UserRepo
         {
             _context = context;
         }
-        public async Task AddUserAsync(User user)
+        public async Task AddUserAsync(EntityUser user)
         {
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -26,12 +27,12 @@ namespace BioLinker.Respository.UserRepo
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        public async Task<IEnumerable<EntityUser>> GetAllUsersAsync()
         {
             return await _context.Users.ToListAsync();
         }
 
-        public async Task<User?> GetByEmailAsync(string email)
+        public async Task<EntityUser?> GetByEmailAsync(string email)
         {
             return await _context.Users
                         .Include(u => u.UserRoles)
@@ -39,7 +40,7 @@ namespace BioLinker.Respository.UserRepo
                         .FirstOrDefaultAsync(u => u.Email == email);
         }
 
-        public async Task<User?> GetByIdAsync(string userId)
+        public async Task<EntityUser?> GetByIdAsync(string userId)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
         }
@@ -52,7 +53,7 @@ namespace BioLinker.Respository.UserRepo
                 .FirstOrDefaultAsync();
         }
 
-        public async Task UpdateAsync(User user)
+        public async Task UpdateAsync(EntityUser user)
         {
             _context.Users.Update(user);
             await _context.SaveChangesAsync();

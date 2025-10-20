@@ -17,6 +17,7 @@
         public string? Description { get; set; }
         public string? NickName { get; set; }
         public bool? IsBeginner { get; set; }
+        public string? BackgroundImage { get; set; }
 
     }
 }

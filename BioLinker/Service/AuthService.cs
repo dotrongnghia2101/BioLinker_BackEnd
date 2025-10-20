@@ -112,6 +112,7 @@ namespace BioLinker.Service
                 Description = user.Description,
                 NickName = user.NickName,
                 IsBeginner = user.IsBeginner,
+                BackgroundImage = user.BackgroundImage,
             };       
         }
 
@@ -187,6 +188,7 @@ namespace BioLinker.Service
                 Description = existingUser.Description,
                 NickName = existingUser.NickName,
                 UserImage = existingUser.UserImage,
+                BackgroundImage = existingUser.BackgroundImage,
             };
         }
 
@@ -231,6 +233,7 @@ namespace BioLinker.Service
                 CustomerDomain = user.CustomerDomain,
                 IsGoogle = user.IsGoogle,
                 IsBeginner = user.IsBeginner,
+                BackgroundImage = user.BackgroundImage,
             };
         }
 
@@ -390,6 +393,7 @@ namespace BioLinker.Service
                 user.Description = dto.Description;
                 user.CustomerDomain = string.IsNullOrEmpty(normDomain) ? null : normDomain;
                 user.IsBeginner = dto.IsBeginner;
+                user.BackgroundImage = dto.BackgroundImage;
 
                 await _appDBContext.SaveChangesAsync();
                 return (true, null);
