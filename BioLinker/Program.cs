@@ -16,15 +16,28 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Net.payOS;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+// ==================== CAU HINH PAYOS ====================
+builder.Services.AddSingleton(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    return new PayOS(
+        config["PayOS:ClientId"],
+        config["PayOS:ApiKey"],
+        config["PayOS:ChecksumKey"]
+    );
+});
 
 // ==================== CAU HINH DATABASE MYSQL ====================
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -52,7 +65,6 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<ILinkService, LinkService>();
 builder.Services.AddScoped<IUserTemplateService, UserTemplateService>();
 builder.Services.AddScoped<IMarketplaceService, MarketplaceService>();
-builder.Services.AddScoped<IPayOSService, PayOSService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 //==================== CAU HINH REPOSITORY ====================
