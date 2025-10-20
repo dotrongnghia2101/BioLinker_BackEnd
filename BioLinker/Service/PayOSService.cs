@@ -89,7 +89,7 @@ namespace BioLinker.Service
 
                 string key = _cfg["PayOS:ChecksumKey"]!;
 
-                // ✅ Parse JSON và chỉ lấy phần "data"
+                // ✅ Lấy phần "data" để hash
                 using var doc = JsonDocument.Parse(payload);
                 if (!doc.RootElement.TryGetProperty("data", out var dataElement))
                 {
@@ -97,10 +97,11 @@ namespace BioLinker.Service
                     return false;
                 }
 
-                string dataJson = dataElement.GetRawText(); // lấy đúng JSON của phần data
+                // ✅ Chuyển phần data sang JSON chuẩn hóa (minified + sorted keys)
+                string normalizedData = NormalizeJson(dataElement);
 
                 using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(key));
-                var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(dataJson));
+                var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(normalizedData));
                 string calc = BitConverter.ToString(hash).Replace("-", "").ToLower();
 
                 bool match = calc == receivedChecksum.ToLower();
@@ -112,6 +113,26 @@ namespace BioLinker.Service
             {
                 _logger.LogError(ex, "Lỗi khi xác minh checksum");
                 return false;
+            }
+        }
+
+        private string NormalizeJson(JsonElement element)
+        {
+            if (element.ValueKind == JsonValueKind.Object)
+            {
+                var props = element.EnumerateObject()
+                    .OrderBy(p => p.Name, StringComparer.Ordinal)
+                    .Select(p => $"\"{p.Name}\":{NormalizeJson(p.Value)}");
+                return "{" + string.Join(",", props) + "}";
+            }
+            else if (element.ValueKind == JsonValueKind.Array)
+            {
+                var items = element.EnumerateArray().Select(NormalizeJson);
+                return "[" + string.Join(",", items) + "]";
+            }
+            else
+            {
+                return JsonSerializer.Serialize(element.GetRawText().Trim('"')).Trim('"');
             }
         }
 
