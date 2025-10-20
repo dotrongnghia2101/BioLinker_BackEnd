@@ -58,25 +58,43 @@ namespace BioLinker.Service
             }
         }
 
-        public async Task<bool> HandleWebhookAsync(JsonElement payload, string checksumHeader)
+        public async Task<bool> HandleWebhookAsync(JsonElement payload, string signature)
         {
             try
             {
-                string raw = payload.GetRawText(); // dữ liệu JSON gốc
-                if (!_payos.VerifyChecksum(raw, checksumHeader))
+                string raw = payload.GetRawText();
+
+                // ✅ Kiểm tra chữ ký
+                if (string.IsNullOrWhiteSpace(signature))
+                {
+                    _logger.LogWarning("Webhook thiếu signature, bỏ qua.");
+                    return false;
+                }
+
+                if (!_payos.VerifyChecksum(raw, signature))
                 {
                     _logger.LogWarning("Checksum không hợp lệ!");
                     return false;
                 }
 
-                // Lấy thông tin cơ bản từ payload
-                long orderCode = payload.GetProperty("data").GetProperty("orderCode").GetInt64();
-                string status = payload.GetProperty("data").GetProperty("status").GetString() ?? "";
-                string transactionId = payload.GetProperty("data").TryGetProperty("transactionId", out var tx)
+                // ✅ Lấy thông tin cơ bản từ payload
+                var data = payload.GetProperty("data");
+                long orderCode = data.GetProperty("orderCode").GetInt64();
+
+                // Một số webhook PayOS không gửi “status”, nên ta fallback theo “code”
+                string status = data.TryGetProperty("status", out var st)
+                    ? st.GetString() ?? ""
+                    : data.TryGetProperty("code", out var cd)
+                        ? cd.GetString() ?? ""
+                        : "";
+
+                string transactionId = data.TryGetProperty("transactionId", out var tx)
                     ? tx.GetString() ?? ""
                     : "";
 
-                // Tìm bản ghi payment trong DB theo orderCode
+                _logger.LogInformation("Nhận webhook orderCode={0}, status={1}", orderCode, status);
+
+                // ✅ Tìm bản ghi payment trong DB theo orderCode
                 var payment = await _repo.GetByOrderCodeAsync(orderCode.ToString());
                 if (payment == null)
                 {
@@ -84,9 +102,11 @@ namespace BioLinker.Service
                     return false;
                 }
 
-                payment.Checksum = checksumHeader;
+                payment.Checksum = signature;
 
-                if (status.Equals("PAID", StringComparison.OrdinalIgnoreCase))
+                //  Cập nhật trạng thái thanh toán
+                if (status.Equals("PAID", StringComparison.OrdinalIgnoreCase) ||
+                    status.Equals("00", StringComparison.OrdinalIgnoreCase))
                 {
                     payment.Status = "Paid";
                     payment.TransactionId = transactionId;
@@ -115,5 +135,6 @@ namespace BioLinker.Service
         }
     }
     }
+  
  
 
