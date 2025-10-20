@@ -80,59 +80,49 @@ namespace BioLinker.Service
             };
         }
 
-        public bool VerifyChecksum(string payload, string receivedChecksum)
+        public bool VerifyChecksum(string payload, string receivedSignature)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(receivedChecksum))
-                    return false;
+                if (string.IsNullOrWhiteSpace(receivedSignature)) return false;
 
                 string key = _cfg["PayOS:ChecksumKey"]!;
 
-                // ✅ Lấy phần "data" để hash
                 using var doc = JsonDocument.Parse(payload);
                 if (!doc.RootElement.TryGetProperty("data", out var dataElement))
                 {
-                    _logger.LogWarning("Webhook không có trường 'data' → bỏ qua verify.");
+                    _logger.LogWarning("Webhook không có trường 'data'.");
                     return false;
                 }
 
-                // ✅ Chuyển phần data sang JSON chuẩn hóa (minified + sorted keys)
-                string normalizedData = NormalizeJson(dataElement);
+                // Build chuỗi kiểu key1=value1&key2=value2… sorted alphabet
+                var dict = new SortedDictionary<string, string>(StringComparer.Ordinal);
+                foreach (var prop in dataElement.EnumerateObject())
+                {
+                    // Lấy giá trị string của prop (nếu object/array có thể cần serialize)
+                    string value;
+                    if (prop.Value.ValueKind == JsonValueKind.Object || prop.Value.ValueKind == JsonValueKind.Array)
+                        value = prop.Value.GetRawText();
+                    else
+                        value = prop.Value.ToString();
+
+                    dict.Add(prop.Name, value);
+                }
+
+                string dataString = string.Join("&", dict.Select(kv => $"{kv.Key}={kv.Value}"));
 
                 using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(key));
-                var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(normalizedData));
-                string calc = BitConverter.ToString(hash).Replace("-", "").ToLower();
+                var hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(dataString));
+                string calc = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
 
-                bool match = calc == receivedChecksum.ToLower();
-                _logger.LogInformation("Xác minh chữ ký PayOS: {match} | calc={calc} | recv={receivedChecksum}", match, calc, receivedChecksum);
-
+                bool match = calc == receivedSignature.ToLower();
+                _logger.LogInformation("Signature check: {match} | calc={calc} | recv={recv}", match, calc, receivedSignature);
                 return match;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi xác minh checksum");
+                _logger.LogError(ex, "Error verifying PayOS signature");
                 return false;
-            }
-        }
-
-        private string NormalizeJson(JsonElement element)
-        {
-            if (element.ValueKind == JsonValueKind.Object)
-            {
-                var props = element.EnumerateObject()
-                    .OrderBy(p => p.Name, StringComparer.Ordinal)
-                    .Select(p => $"\"{p.Name}\":{NormalizeJson(p.Value)}");
-                return "{" + string.Join(",", props) + "}";
-            }
-            else if (element.ValueKind == JsonValueKind.Array)
-            {
-                var items = element.EnumerateArray().Select(NormalizeJson);
-                return "[" + string.Join(",", items) + "]";
-            }
-            else
-            {
-                return JsonSerializer.Serialize(element.GetRawText().Trim('"')).Trim('"');
             }
         }
 
