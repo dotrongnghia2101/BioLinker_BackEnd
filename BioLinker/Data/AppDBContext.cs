@@ -584,6 +584,29 @@ namespace BioLinker.Data
                 entity.Property(e => e.CreatedAt)
                       .HasColumnType("datetime")
                       .HasColumnName("createdAt");
+                entity.Property(e => e.TransactionId)
+                      .HasMaxLength(100)
+                      .HasColumnName("transactionId");
+                entity.Property(e => e.PaymentUrl)
+                     .HasMaxLength(255)
+                     .HasColumnName("paymentUrl");
+                entity.Property(e => e.Checksum)
+                      .HasMaxLength(200)
+                      .HasColumnName("checksum");
+                entity.Property(e => e.PaidAt)
+                     .HasColumnType("datetime")
+                     .HasColumnName("paidAt")
+                     .IsRequired(false);
+                entity.Property(e => e.OrderCode)
+                      .HasMaxLength(50)
+                      .HasColumnName("orderCode")
+                      .IsRequired();
+                entity.Property(e => e.Description)
+                      .HasMaxLength(255)
+                      .HasColumnName("description");
+
+                entity.HasIndex(e => e.OrderCode)
+                      .HasDatabaseName("IX_Payment_OrderCode");
 
                 entity.HasOne(p => p.User)
                       .WithMany(u => u.Payments)
