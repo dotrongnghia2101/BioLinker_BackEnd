@@ -18,27 +18,34 @@ namespace BioLinker.Service
             _http = new HttpClient();
         }
         public async Task<PayOSResponse> CreatePaymentAsync(PayOSRequest dto)
-        {
+        {                
             string clientId = _cfg["PayOS:ClientId"]!;
             string apiKey = _cfg["PayOS:ApiKey"]!;
             string baseUrl = _cfg["PayOS:BaseUrl"]!;
             string checksumKey = _cfg["PayOS:ChecksumKey"]!;
 
+            // ✅ Đảm bảo orderCode là số nguyên dương
+            if (dto.OrderCode <= 0)
+                dto.OrderCode = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
             var body = new
             {
                 orderCode = dto.OrderCode,
-                amount = dto.Amount,
+                amount = (int)dto.Amount, // ✅ PayOS chỉ nhận integer
                 description = dto.Description,
-                returnUrl = dto.ReturnUrl,
                 cancelUrl = dto.CancelUrl,
+                returnUrl = dto.ReturnUrl,
                 items = new[]
                 {
-                    new {
-                        name = dto.ItemName,
-                        quantity = 1,
-                        price = dto.Amount
-                    }
-                }
+            new {
+                name = dto.ItemName ?? "Goi BioLink Pro",
+                quantity = 1,
+                price = (int)dto.Amount
+            }
+        },
+                buyerName = "Test User",
+                buyerEmail = "test@biolinker.com",
+                buyerPhone = "0900000000"
             };
 
             string rawData = JsonSerializer.Serialize(body);
@@ -59,25 +66,22 @@ namespace BioLinker.Service
 
             _logger.LogInformation("⬅️ Phản hồi PayOS: {raw}", raw);
 
-            //  Kiểm tra lỗi HTTP
-            if (!response.IsSuccessStatusCode)
-                throw new Exception($"PayOS error: {raw}");
-
             using var doc = JsonDocument.Parse(raw);
             var root = doc.RootElement;
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception($"PayOS error: {raw}");
 
             if (!root.TryGetProperty("data", out JsonElement data) || data.ValueKind != JsonValueKind.Object)
                 throw new Exception($"PayOS error: Response missing 'data' field. Raw: {raw}");
 
-            string link = data.GetProperty("checkoutUrl").GetString() ?? "";
-            string oc = data.GetProperty("orderCode").GetRawText();
-
             return new PayOSResponse
             {
-                PaymentLink = link,
-                OrderCode = oc,
+                PaymentLink = data.GetProperty("checkoutUrl").GetString() ?? "",
+                OrderCode = data.GetProperty("orderCode").ToString(),
                 Message = "Tạo liên kết thanh toán thành công"
             };
+        
         }
 
         public bool VerifyChecksum(string payload, string receivedSignature)
