@@ -36,7 +36,7 @@ namespace BioLinker.Service
             _http.DefaultRequestHeaders.Add("x-client-id", clientId);
             _http.DefaultRequestHeaders.Add("x-api-key", apiKey);
 
-            var response = await _http.PostAsync($"{baseUrl}/payments", content);
+            var response = await _http.PostAsync($"{baseUrl}/v2/payment-requests", content);
             var raw = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
