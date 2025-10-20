@@ -9,5 +9,6 @@
         public string CancelUrl { get; set; } = string.Empty;
         public string? UserId { get; set; } = string.Empty;
         public string? PlanId { get; set; }
+        public string ItemName { get; set; }
     }
 }
