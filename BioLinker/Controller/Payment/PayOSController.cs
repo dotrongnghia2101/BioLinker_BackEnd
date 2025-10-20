@@ -29,7 +29,7 @@ namespace BioLinker.Controller.Payment
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Loi tao thanh toan PayOS");
+                _logger.LogError(ex, "❌ Lỗi tạo thanh toán PayOS");
                 return BadRequest(new { message = ex.Message });
             }
         }
@@ -37,69 +37,17 @@ namespace BioLinker.Controller.Payment
         [HttpPost("webhook")]
         public async Task<IActionResult> PayOSWebhook()
         {
-            try
-            {
-                using var reader = new StreamReader(Request.Body);
-                var body = await reader.ReadToEndAsync();
+            using var reader = new StreamReader(Request.Body);
+            var body = await reader.ReadToEndAsync();
 
-                //  Nếu body trống (PayOS ping test)
-                if (string.IsNullOrWhiteSpace(body))
-                {
-                    _logger.LogInformation("Webhook nhận ping test (body rỗng) → trả về 200 OK.");
-                    return Ok(new { code = "00", message = "Webhook alive" });
-                }
+            if (string.IsNullOrWhiteSpace(body))
+                return Ok(new { code = "00", message = "Webhook alive" });
 
-                JsonDocument? jsonDoc;
-                try
-                {
-                    jsonDoc = JsonDocument.Parse(body);
-                }
-                catch
-                {
-                    _logger.LogWarning("Webhook nhận dữ liệu không phải JSON → trả về 200 OK.");
-                    return Ok(new { code = "00", message = "Webhook alive" });
-                }
-
-                var payload = jsonDoc.RootElement;
-
-                //  Nếu không có "data" → ping test
-                if (!payload.TryGetProperty("data", out _))
-                {
-                    _logger.LogInformation("Webhook nhận ping test (không có 'data') → trả về 200 OK.");
-                    return Ok(new { code = "00", message = "Webhook alive" });
-                }
-
-                //  Lấy signature từ body (PayOS KHÔNG gửi qua header)
-                string signature = payload.TryGetProperty("signature", out var sig)
-                    ? sig.GetString() ?? ""
-                    : "";
-
-                if (string.IsNullOrEmpty(signature))
-                {
-                    _logger.LogWarning("Webhook thiếu chữ ký (signature) → bỏ qua.");
-                    return BadRequest(new { code = "01", message = "Thiếu chữ ký webhook" });
-                }
-
-                _logger.LogInformation("Webhook nhận dữ liệu thực tế: {payload}", body);
-
-                //  Gọi service xử lý webhook
-                bool ok = await _paymentService.HandleWebhookAsync(payload, signature);
-
-                if (ok)
-                {
-                    _logger.LogInformation(" Xử lý webhook thành công.");
-                    return Ok(new { code = "00", message = "Webhook xử lý thành công" });
-                }
-
-                _logger.LogWarning(" Webhook thất bại - checksum hoặc orderCode không hợp lệ.");
-                return BadRequest(new { code = "01", message = "Webhook xử lý thất bại" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, " Lỗi khi xử lý webhook PayOS");
-                return StatusCode(500, new { code = "99", message = "Lỗi hệ thống", error = ex.Message });
-            }
+            var ok = await _paymentService.HandleWebhookAsync(body);
+            return ok
+                ? Ok(new { code = "00", message = "Webhook xử lý thành công" })
+                : BadRequest(new { code = "01", message = "Webhook xử lý thất bại" });
         }
-    
+
     }
 }
