@@ -88,12 +88,24 @@ namespace BioLinker.Service
                     return false;
 
                 string key = _cfg["PayOS:ChecksumKey"]!;
+
+                // ✅ Parse JSON và chỉ lấy phần "data"
+                using var doc = JsonDocument.Parse(payload);
+                if (!doc.RootElement.TryGetProperty("data", out var dataElement))
+                {
+                    _logger.LogWarning("Webhook không có trường 'data' → bỏ qua verify.");
+                    return false;
+                }
+
+                string dataJson = dataElement.GetRawText(); // lấy đúng JSON của phần data
+
                 using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(key));
-                var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
+                var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(dataJson));
                 string calc = BitConverter.ToString(hash).Replace("-", "").ToLower();
 
                 bool match = calc == receivedChecksum.ToLower();
-                _logger.LogInformation("Xác minh chữ ký PayOS: {match}", match);
+                _logger.LogInformation("Xác minh chữ ký PayOS: {match} | calc={calc} | recv={receivedChecksum}", match, calc, receivedChecksum);
+
                 return match;
             }
             catch (Exception ex)
