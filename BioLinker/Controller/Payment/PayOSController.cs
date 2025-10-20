@@ -42,43 +42,64 @@ namespace BioLinker.Controller.Payment
                 using var reader = new StreamReader(Request.Body);
                 var body = await reader.ReadToEndAsync();
 
-                // ✅ Nếu PayOS test ping (body rỗng hoặc không có data) thì phản hồi OK luôn
+                //  Nếu body trống (PayOS ping test)
                 if (string.IsNullOrWhiteSpace(body))
                 {
-                    _logger.LogWarning("Webhook nhận request kiểm tra từ PayOS (ping), trả về 200 OK.");
+                    _logger.LogInformation("Webhook nhận ping test (body rỗng) → trả về 200 OK.");
                     return Ok(new { code = "00", message = "Webhook alive" });
                 }
 
-                var payload = JsonDocument.Parse(body).RootElement;
+                JsonDocument? jsonDoc;
+                try
+                {
+                    jsonDoc = JsonDocument.Parse(body);
+                }
+                catch
+                {
+                    _logger.LogWarning("Webhook nhận dữ liệu không phải JSON → trả về 200 OK.");
+                    return Ok(new { code = "00", message = "Webhook alive" });
+                }
 
-                // ✅ Nếu không có trường "data" thì cũng coi là ping test
+                var payload = jsonDoc.RootElement;
+
+                //  Nếu không có "data" → ping test
                 if (!payload.TryGetProperty("data", out _))
                 {
-                    _logger.LogWarning("Webhook nhận ping test (không có trường data), trả về 200 OK.");
+                    _logger.LogInformation("Webhook nhận ping test (không có 'data') → trả về 200 OK.");
                     return Ok(new { code = "00", message = "Webhook alive" });
                 }
 
-                string checksumHeader = Request.Headers["x-checksum"]!;
+                //  Lấy signature từ body (PayOS KHÔNG gửi qua header)
+                string signature = payload.TryGetProperty("signature", out var sig)
+                    ? sig.GetString() ?? ""
+                    : "";
+
+                if (string.IsNullOrEmpty(signature))
+                {
+                    _logger.LogWarning("Webhook thiếu chữ ký (signature) → bỏ qua.");
+                    return BadRequest(new { code = "01", message = "Thiếu chữ ký webhook" });
+                }
+
                 _logger.LogInformation("Webhook nhận dữ liệu thực tế: {payload}", body);
 
-                bool ok = await _paymentService.HandleWebhookAsync(payload, checksumHeader);
+                //  Gọi service xử lý webhook
+                bool ok = await _paymentService.HandleWebhookAsync(payload, signature);
 
                 if (ok)
                 {
-                    _logger.LogInformation("Xử lý webhook thành công.");
+                    _logger.LogInformation(" Xử lý webhook thành công.");
                     return Ok(new { code = "00", message = "Webhook xử lý thành công" });
                 }
 
-                _logger.LogWarning("Webhook thất bại, checksum hoặc orderCode không hợp lệ.");
+                _logger.LogWarning(" Webhook thất bại - checksum hoặc orderCode không hợp lệ.");
                 return BadRequest(new { code = "01", message = "Webhook xử lý thất bại" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi xử lý webhook PayOS");
+                _logger.LogError(ex, " Lỗi khi xử lý webhook PayOS");
                 return StatusCode(500, new { code = "99", message = "Lỗi hệ thống", error = ex.Message });
             }
         }
-
-
+    
     }
 }
