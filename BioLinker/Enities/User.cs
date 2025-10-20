@@ -22,6 +22,7 @@ namespace BioLinker.Enities
         public bool? IsGoogle { get; set; }
         public string? CustomerDomain { get; set; } 
         public bool? IsBeginner { get; set; } = true;
+        public string? BackgroundImage { get; set; }
 
         // Navigation
         //public virtual ICollection<SubscriptionPlan> Subscriptions { get; set; } = new List<SubscriptionPlan>();
