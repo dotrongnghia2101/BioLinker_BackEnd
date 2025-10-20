@@ -6,6 +6,7 @@ using BioLinker.Respository.BioPageRepo;
 using BioLinker.Respository.ClickRepo;
 using BioLinker.Respository.LinkRepo;
 using BioLinker.Respository.TemplateRepo;
+using BioLinker.Respository.User;
 using BioLinker.Respository.UserRepo;
 using BioLinker.Service;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -48,6 +49,7 @@ builder.Services.AddScoped<ICountBioClickedService, CountBioClickedService>();
 builder.Services.AddScoped<IAnalyticLinkService, AnalyticLinkService>();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<ILinkService, LinkService>();
+builder.Services.AddScoped<IUserTemplateService, IUserTemplateService>();
 
 //==================== CAU HINH REPOSITORY ====================
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -65,6 +67,7 @@ builder.Services.AddScoped<ICountBioClickedRepository, CountBioClickedRepository
 builder.Services.AddScoped<ICountTemplateClickedRepository, CountTemplateClickedRepository>();
 builder.Services.AddScoped<IAnalyticLinkRepository, AnalyticLinkRepository>();
 builder.Services.AddScoped<ILinkRepository, LinkRepository>();
+builder.Services.AddScoped<IUserTemplateRepository,IUserTemplateRepository>();
 
 // ==================== AUTHENTICATION (JWT + FACEBOOK) ====================
 builder.Services.AddAuthentication(options =>
