@@ -35,7 +35,7 @@ namespace BioLinker.Controller.Payment
         }
 
         [HttpPost("webhook")]
-        public async Task<IActionResult> PayOSWebhook()
+        public async Task<IActionResult> PayOSWebhook([FromBody] JsonElement body)
         {
             using var reader = new StreamReader(Request.Body);
             var body = await reader.ReadToEndAsync();
