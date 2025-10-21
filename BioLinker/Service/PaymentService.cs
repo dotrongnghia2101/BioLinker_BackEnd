@@ -41,7 +41,7 @@ namespace BioLinker.Service
                     dto.ReturnUrl
                 );
 
-                _logger.LogInformation("➡️ Gửi yêu cầu PayOS: {data}", paymentData);
+                _logger.LogInformation(" Gửi yêu cầu PayOS: {data}", paymentData);
 
                 var res = await _payos.createPaymentLink(paymentData);
 
@@ -61,7 +61,7 @@ namespace BioLinker.Service
 
                 await _repo.CreateAsync(payment);
 
-                _logger.LogInformation("✅ Tạo thanh toán thành công: {orderCode}", orderCode);
+                _logger.LogInformation(" Tạo thanh toán thành công: {orderCode}", orderCode);
 
                 return new PayOSResponse
                 {
@@ -72,7 +72,7 @@ namespace BioLinker.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Lỗi tạo thanh toán PayOS");
+                _logger.LogError(ex, " Lỗi tạo thanh toán PayOS");
                 throw;
             }
         }
@@ -81,16 +81,28 @@ namespace BioLinker.Service
         {
             try
             {
-                // ✅ Dùng SDK để verify webhook
+                if (string.IsNullOrWhiteSpace(body) || body.Trim() == "{}")
+                {
+                    _logger.LogInformation("Webhook test (body rỗng hoặc {}) → trả về 200 OK cho PayOS.");
+                    return true;
+                }
+
                 var webhook = JsonSerializer.Deserialize<WebhookType>(body);
+                if (webhook?.data?.orderCode == 123)
+                {
+                    _logger.LogInformation("Webhook test (orderCode=123) từ PayOS → trả về 200 OK.");
+                    return true;
+                }
 
-                // ✅ Gọi SDK để xác minh webhook
-                var webhookData = _payos.verifyPaymentWebhookData(webhook);
+                // Xác minh chữ ký và lấy data
+                WebhookData webhookData = _payos.verifyPaymentWebhookData(webhook);
+
                 long orderCode = webhookData.orderCode;
-                string code = webhookData.code; // "00" = thành công
-
+                int amount = webhookData.amount;                    // nếu cần
+                string code = webhookData.code;                     // "00" = thành công
                 _logger.LogInformation("📦 Nhận webhook orderCode={OrderCode}, code={Code}", orderCode, code);
 
+                // Tìm payment trong DB theo orderCode
                 var payment = await _repo.GetByOrderCodeAsync(orderCode.ToString());
                 if (payment == null)
                 {
@@ -98,6 +110,7 @@ namespace BioLinker.Service
                     return false;
                 }
 
+                // Cập nhật trạng thái
                 if (code == "00")
                 {
                     payment.Status = "Paid";
@@ -109,12 +122,13 @@ namespace BioLinker.Service
                 }
 
                 await _repo.UpdateAsync(payment);
-                _logger.LogInformation("✅ Cập nhật trạng thái thanh toán {orderCode} → {status}", orderCode, payment.Status);
+                _logger.LogInformation("Cập nhật trạng thái thanh toán {OrderCode} → {Status}", orderCode, payment.Status);
+
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Lỗi xử lý webhook");
+                _logger.LogError(ex, "Lỗi xử lý webhook PayOS");
                 return false;
             }
         }
