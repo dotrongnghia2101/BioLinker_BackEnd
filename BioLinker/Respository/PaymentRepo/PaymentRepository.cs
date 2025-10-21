@@ -19,9 +19,24 @@ namespace BioLinker.Respository.PaymentRepo
             return payment;
         }
 
+        public async Task<IEnumerable<Payment>> GetAllPaymentsAsync()
+        {
+            return await _db.Payments
+               .OrderByDescending(p => p.CreatedAt)
+               .ToListAsync();
+        }
+
         public async Task<Payment?> GetByOrderCodeAsync(string orderCode)
         {
             return await _db.Payments.FirstOrDefaultAsync(p => p.OrderCode == orderCode);
+        }
+
+        public async Task<IEnumerable<Payment>> GetPaymentsByUserAsync(string userId)
+        {
+            return await _db.Payments
+               .Where(p => p.UserId == userId)
+               .OrderByDescending(p => p.CreatedAt)
+               .ToListAsync();
         }
 
         public async Task UpdateAsync(Payment payment)

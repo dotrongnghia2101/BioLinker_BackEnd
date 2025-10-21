@@ -77,6 +77,62 @@ namespace BioLinker.Service
             }
         }
 
+        public async Task<IEnumerable<PaymentResponse>> GetAllPaymentsAsync()
+        {
+            try
+            {
+                var payments = await _repo.GetAllPaymentsAsync();
+                _logger.LogInformation("Admin lấy danh sách tất cả thanh toán, tổng cộng {Count}", payments.Count());
+
+                return payments.Select(p => new PaymentResponse
+                {
+                    PaymentId = p.PaymentId,
+                    OrderCode = p.OrderCode,
+                    Amount = p.Amount,
+                    Status = p.Status,
+                    Method = p.Method,
+                    PlanId = p.PlanId,
+                    UserId = p.UserId,
+                    PaymentUrl = p.PaymentUrl,
+                    CreatedAt = p.CreatedAt,
+                    PaidAt = p.PaidAt
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi admin lấy danh sách thanh toán");
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<PaymentResponse>> GetPaymentsByUserAsync(string userId)
+        {
+            try
+            {
+                var payments = await _repo.GetPaymentsByUserAsync(userId);
+                _logger.LogInformation("Lấy {Count} thanh toán của user {UserId}", payments.Count(), userId);
+
+                return payments.Select(p => new PaymentResponse
+                {
+                    PaymentId = p.PaymentId,
+                    OrderCode = p.OrderCode,
+                    Amount = p.Amount,
+                    Status = p.Status,
+                    Method = p.Method,
+                    PlanId = p.PlanId,
+                    UserId = p.UserId,
+                    PaymentUrl = p.PaymentUrl,
+                    CreatedAt = p.CreatedAt,
+                    PaidAt = p.PaidAt
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy danh sách thanh toán của user {UserId}", userId);
+                throw;
+            }
+        }
+
         public async Task<bool> HandleWebhookAsync(string body)
         {
             try
