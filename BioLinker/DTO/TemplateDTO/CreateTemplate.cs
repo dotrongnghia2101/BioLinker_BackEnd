@@ -7,5 +7,7 @@
         public string? Category { get; set; }
         public bool IsPremium { get; set; }
         public string? CreatedBy { get; set; }
+        public string? Job { get; set; }
+        public string? PreviewImage { get; set; }
     }
 }

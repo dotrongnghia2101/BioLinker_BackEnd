@@ -380,6 +380,14 @@ namespace BioLinker.Data
                 entity.Property(e => e.StyleSettingsId)
                       .HasColumnName("styleSettingsID");
 
+                entity.Property(e => e.Job)
+                      .HasMaxLength(100)
+                      .HasColumnName("job");
+
+                entity.Property(e => e.PreviewImage)
+                      .HasMaxLength(500)
+                      .HasColumnName("previewImage");
+
                 entity.HasOne(t => t.Creator)
                       .WithMany(u => u.CreatedTemplates)
                       .HasForeignKey(t => t.CreatedBy)
