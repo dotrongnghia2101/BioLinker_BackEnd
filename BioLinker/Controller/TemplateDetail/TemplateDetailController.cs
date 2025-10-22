@@ -32,10 +32,17 @@ namespace BioLinker.Controller.TemplateDetail
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateTemplateDetail dto)
+        public async Task<IActionResult> Create([FromBody] List<CreateTemplateDetail> dtos)
         {
-            var result = await _service.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = result.TemplateDetailId }, result);
+            var results = new List<TemplateDetailResponse>();
+
+            foreach (var dto in dtos)
+            {
+                var result = await _service.CreateAsync(dto);
+                results.Add(result);
+            }
+
+            return Ok(results);
         }
 
         [HttpPut("{id}")]
