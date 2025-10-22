@@ -1,4 +1,5 @@
-﻿using BioLinker.Enities;
+﻿using BioLinker.DTO.LinkDTO;
+using BioLinker.Enities;
 using BioLinker.Helper;
 using BioLinker.Respository.LinkRepo;
 using Microsoft.AspNetCore.SignalR;
@@ -17,58 +18,69 @@ namespace BioLinker.Service
             _hub = hub;
         }
 
-        public async Task RecordClickAsync(string linkId)
+        public async Task<IEnumerable<AnalyticLinkResponse>> GetAnalyticsByStaticLinkAsync(string staticLinkId)
         {
-            await _repo.AddOrUpdateClickAsync(linkId);
+            var analytics = await _repo.GetByStaticLinkIdAsync(staticLinkId);
 
-            // lay tong click moi
-            var total = await _repo.GetTotalClicksByLinkAsync(linkId);
-
-            // Gửi tín hiệu realtime cho tất cả client thuộc BioPage đó
-            await _hub.Clients.All.SendAsync("ReceiveClickUpdate", new
+            return analytics.Select(a => new AnalyticLinkResponse
             {
-                linkId = linkId,
-                totalClicks = total,
-                timestamp = DateTime.UtcNow
-            });
+                AnalyticsId = a.AnalyticsId,
+                StaticLinkId = a.StaticLinkId,
+                Views = a.Views,
+                Clicks = a.Clicks,
+                Date = a.Date
+            }).ToList();
         }
 
-        public async Task<IEnumerable<AnalyticLink>> GetAnalyticsByLinkAsync(string linkId)
+        public async Task<int?> GetTotalClicksByStaticLinkAsync(string staticLinkId)
         {
-            return await _repo.GetByLinkIdAsync(linkId);
+            return await _repo.GetTotalClicksByStaticLinkAsync(staticLinkId);
         }
 
-        public async Task<int?> GetTotalClicksByLinkAsync(string linkId)
+        public async Task<int?> GetTotalViewsByStaticLinkAsync(string staticLinkId)
         {
-            return await _repo.GetTotalClicksByLinkAsync(linkId);
+            return await _repo.GetTotalViewsByStaticLinkAsync(staticLinkId);
         }
 
-        public async Task<int?> GetTotalClicksByPageAsync(string bioPageId)
+        public async Task NotifyRealtimeClickAsync(string staticLinkId, int totalClicks)
         {
-            return await _repo.GetTotalClicksByPageAsync(bioPageId);
+            await _hub.Clients.Group($"static_{staticLinkId}")
+                 .SendAsync("ReceiveClickUpdate", new
+                 {
+                     staticLinkId,
+                     totalClicks,
+                     timestamp = DateTime.UtcNow
+                 });
         }
 
-        public async Task RecordViewAsync(string bioPageId)
+        public async Task RecordClickAsync(string staticLinkId)
         {
-            await _repo.AddOrUpdatePageViewAsync(bioPageId);
+            await _repo.AddOrUpdateClickAsync(staticLinkId);
 
-            
-            await _hub.Clients.Group($"bio_{bioPageId}")
-                .SendAsync("ReceiveViewUpdate", new
+            var total = await _repo.GetTotalClicksByStaticLinkAsync(staticLinkId);
+
+            await _hub.Clients.Group($"static_{staticLinkId}")
+                .SendAsync("ReceiveClickUpdate", new
                 {
-                    bioPageId = bioPageId,
-                    time = DateTime.UtcNow
+                    staticLinkId,
+                    totalClicks = total,
+                    timestamp = DateTime.UtcNow
                 });
         }
 
-        public async Task NotifyRealtimeClickAsync(string linkId, int totalClicks)
+        public async Task RecordViewAsync(string staticLinkId)
         {
-            await _hub.Clients.All.SendAsync("ReceiveClickUpdate", new
-            {
-                linkId = linkId,
-                totalClicks = totalClicks,
-                timestamp = DateTime.UtcNow
-            });
+            await _repo.AddOrUpdateViewAsync(staticLinkId);
+
+            var total = await _repo.GetTotalViewsByStaticLinkAsync(staticLinkId);
+
+            await _hub.Clients.Group($"static_{staticLinkId}")
+                .SendAsync("ReceiveViewUpdate", new
+                {
+                    staticLinkId,
+                    totalViews = total,
+                    timestamp = DateTime.UtcNow
+                });
         }
     }
 }
