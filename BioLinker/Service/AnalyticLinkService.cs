@@ -1,4 +1,5 @@
-﻿using BioLinker.Enities;
+﻿using BioLinker.DTO.LinkDTO;
+using BioLinker.Enities;
 using BioLinker.Helper;
 using BioLinker.Respository.LinkRepo;
 using Microsoft.AspNetCore.SignalR;
@@ -17,9 +18,18 @@ namespace BioLinker.Service
             _hub = hub;
         }
 
-        public async Task<IEnumerable<AnalyticLink>> GetAnalyticsByStaticLinkAsync(string staticLinkId)
+        public async Task<IEnumerable<AnalyticLinkResponse>> GetAnalyticsByStaticLinkAsync(string staticLinkId)
         {
-            return await _repo.GetByStaticLinkIdAsync(staticLinkId);
+            var analytics = await _repo.GetByStaticLinkIdAsync(staticLinkId);
+
+            return analytics.Select(a => new AnalyticLinkResponse
+            {
+                AnalyticsId = a.AnalyticsId,
+                StaticLinkId = a.StaticLinkId,
+                Views = a.Views,
+                Clicks = a.Clicks,
+                Date = a.Date
+            }).ToList();
         }
 
         public async Task<int?> GetTotalClicksByStaticLinkAsync(string staticLinkId)
