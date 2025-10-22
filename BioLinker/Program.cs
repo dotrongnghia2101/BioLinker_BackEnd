@@ -66,6 +66,7 @@ builder.Services.AddScoped<ILinkService, LinkService>();
 builder.Services.AddScoped<IUserTemplateService, UserTemplateService>();
 builder.Services.AddScoped<IMarketplaceService, MarketplaceService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<ICollectionService, CollectionService>();
 
 //==================== CAU HINH REPOSITORY ====================
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -86,6 +87,7 @@ builder.Services.AddScoped<ILinkRepository, LinkRepository>();
 builder.Services.AddScoped<IUserTemplateRepository,UserTemplateRepository>();
 builder.Services.AddScoped<IMarketplaceRepository, MarketplaceRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<ICollectionRepository, CollectionRepository>();
 
 // ==================== AUTHENTICATION (JWT + FACEBOOK) ====================
 builder.Services.AddAuthentication(options =>

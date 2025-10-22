@@ -31,6 +31,7 @@ namespace BioLinker.Data
         public virtual DbSet<TemplateDetail> TemplateDetails { get; set; }
         public virtual DbSet<CountBioClicked> CountBioClickeds { get; set; }
         public virtual DbSet<CountTemplateClicked> CountTemplateClickeds { get; set; }
+        public DbSet<Collection> Collections { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -781,6 +782,30 @@ namespace BioLinker.Data
                       .HasForeignKey(ct => ct.TemplateId)
                       .HasConstraintName("FK_CountTemplateClicked_Template")
                       .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ========== COLLECTION ==========
+            modelBuilder.Entity<Collection>(entity =>
+            {
+                entity.ToTable("Collection");
+
+                entity.HasKey(e => e.CollectionId)
+                      .HasName("PK_Collection");
+
+                entity.Property(e => e.CollectionId)
+                      .HasColumnName("collectionID")
+                      .HasMaxLength(255);
+
+                entity.Property(e => e.UserId)
+                      .HasColumnName("userID")
+                      .HasMaxLength(255)
+                      .IsRequired();
+
+                entity.Property(e => e.TemplateId)
+                      .HasColumnName("templateID")
+                      .HasMaxLength(255)
+                      .IsRequired();
+
             });
 
 
