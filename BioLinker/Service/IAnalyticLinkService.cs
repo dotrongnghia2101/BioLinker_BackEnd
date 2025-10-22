@@ -4,11 +4,11 @@ namespace BioLinker.Service
 {
     public interface IAnalyticLinkService
     {
-        Task RecordClickAsync(string linkId);
-        Task RecordViewAsync(string bioPageId); // optional
-        Task<IEnumerable<AnalyticLink>> GetAnalyticsByLinkAsync(string linkId);
-        Task<int?> GetTotalClicksByLinkAsync(string linkId);
-        Task<int?> GetTotalClicksByPageAsync(string bioPageId);
-        Task NotifyRealtimeClickAsync(string linkId, int totalClicks);
+        Task RecordClickAsync(string staticLinkId);
+        Task RecordViewAsync(string staticLinkId);
+        Task<IEnumerable<AnalyticLink>> GetAnalyticsByStaticLinkAsync(string staticLinkId);
+        Task<int?> GetTotalClicksByStaticLinkAsync(string staticLinkId);
+        Task<int?> GetTotalViewsByStaticLinkAsync(string staticLinkId);
+        Task NotifyRealtimeClickAsync(string staticLinkId, int totalClicks);
     }
 }

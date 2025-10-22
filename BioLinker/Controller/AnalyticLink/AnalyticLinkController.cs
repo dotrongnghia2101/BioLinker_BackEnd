@@ -16,72 +16,46 @@ namespace BioLinker.Controller.AnalyticLink
         }
 
         //click cua link
-        [HttpPost("click/{linkId}")]
-        public async Task<IActionResult> RecordClick(string linkId)
+        [HttpPost("click/{staticLinkId}")]
+        public async Task<IActionResult> RecordClick(string staticLinkId)
         {
-            await _analyticService.RecordClickAsync(linkId);
-            return Ok(new
-            {
-                message = $"Click for link {linkId} recorded successfully",
-                timestamp = DateTime.UtcNow
-            });
+            await _analyticService.RecordClickAsync(staticLinkId);
+            return Ok(new { message = "Click recorded successfully", staticLinkId });
         }
 
-        //view cho bio
-        [HttpPost("view/{bioPageId}")]
-        public async Task<IActionResult> RecordView(string bioPageId)
+        //Ghi nhận 1 lượt view cho StaticLink
+        [HttpPost("view/{staticLinkId}")]
+        public async Task<IActionResult> RecordView(string staticLinkId)
         {
-            await _analyticService.RecordViewAsync(bioPageId);
-            return Ok(new
-            {
-                message = $"View for BioPage {bioPageId} recorded successfully",
-                timestamp = DateTime.UtcNow
-            });
+            await _analyticService.RecordViewAsync(staticLinkId);
+            return Ok(new { message = "View recorded successfully", staticLinkId });
         }
 
-        //lay toan bo click cua link
-        [HttpGet("link/{linkId}")]
-        public async Task<IActionResult> GetAnalyticsByLink(string linkId)
+        // Lấy analytic chi tiết theo StaticLink (danh sách theo ngày)
+        [HttpGet("{staticLinkId}/details")]
+        public async Task<IActionResult> GetAnalyticsByStaticLink(string staticLinkId)
         {
-            var result = await _analyticService.GetAnalyticsByLinkAsync(linkId);
+            var data = await _analyticService.GetAnalyticsByStaticLinkAsync(staticLinkId);
+            return Ok(data);
+        }
 
-            var data = result.Select(a => new
-            {
-                a.Date,
-                a.Clicks,
-                a.Views
-            });
+        [HttpGet("{staticLinkId}/summary")]
+        public async Task<IActionResult> GetStaticLinkSummary(string staticLinkId)
+        {
+            var clicks = await _analyticService.GetTotalClicksByStaticLinkAsync(staticLinkId) ?? 0;
+            var views = await _analyticService.GetTotalViewsByStaticLinkAsync(staticLinkId) ?? 0;
+
+            double ctr = views > 0 ? Math.Round((double)clicks / views * 100, 2) : 0;
 
             return Ok(new
             {
-                linkId,
-                total = data.Sum(x => x.Clicks),
-                details = data
+                staticLinkId,
+                totalViews = views,
+                totalClicks = clicks,
+                CTR = $"{ctr} %"
             });
         }
 
-        //tong so click cua link 
-        [HttpGet("link/{linkId}/total")]
-        public async Task<IActionResult> GetTotalClicksByLink(string linkId)
-        {
-            var total = await _analyticService.GetTotalClicksByLinkAsync(linkId);
-            return Ok(new
-            {
-                linkId,
-                totalClicks = total ?? 0
-            });
-        }
-
-        //tong so click cua link trong bio page
-        [HttpGet("page/{bioPageId}/total")]
-        public async Task<IActionResult> GetTotalClicksByPage(string bioPageId)
-        {
-            var total = await _analyticService.GetTotalClicksByPageAsync(bioPageId);
-            return Ok(new
-            {
-                bioPageId,
-                totalClicks = total ?? 0
-            });
-        }
+       
     }
 }

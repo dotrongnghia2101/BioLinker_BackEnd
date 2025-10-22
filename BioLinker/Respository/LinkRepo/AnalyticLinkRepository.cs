@@ -13,19 +13,18 @@ namespace BioLinker.Respository.LinkRepo
             _context = context;
         }
 
-        //cong don so click cho link hom nay
-        public async Task AddOrUpdateClickAsync(string linkId)
+        public async Task AddOrUpdateClickAsync(string staticLinkId)
         {
             var today = DateTime.UtcNow.Date;
 
             var analytic = await _context.AnalyticLinks
-                .FirstOrDefaultAsync(a => a.LinkId == linkId && a.Date == today);
+                .FirstOrDefaultAsync(a => a.StaticLinkId == staticLinkId && a.Date == today);
 
             if (analytic == null)
             {
                 analytic = new AnalyticLink
                 {
-                    LinkId = linkId,
+                    StaticLinkId = staticLinkId,
                     Clicks = 1,
                     Views = 0,
                     Date = today
@@ -35,73 +34,57 @@ namespace BioLinker.Respository.LinkRepo
             else
             {
                 analytic.Clicks += 1;
-                _context.AnalyticLinks.Update(analytic);
             }
 
             await _context.SaveChangesAsync();
         }
 
-
-        public async Task  AddOrUpdatePageViewAsync(string bioPageId)
+        public async Task AddOrUpdateViewAsync(string staticLinkId)
         {
             var today = DateTime.UtcNow.Date;
 
-            // Lấy tất cả link thuộc BioPage này
-            var linkIds = await _context.Links
-                .Where(l => l.BioPageId == bioPageId)
-                .Select(l => l.LinkId)
-                .ToListAsync();
+            var analytic = await _context.AnalyticLinks
+                .FirstOrDefaultAsync(a => a.StaticLinkId == staticLinkId && a.Date == today);
 
-            foreach (var linkId in linkIds)
+            if (analytic == null)
             {
-                var analytic = await _context.AnalyticLinks
-                    .FirstOrDefaultAsync(a => a.LinkId == linkId && a.Date == today);
-
-                if (analytic == null)
+                analytic = new AnalyticLink
                 {
-                    _context.AnalyticLinks.Add(new AnalyticLink
-                    {
-                        AnalyticsId = Guid.NewGuid().ToString(),
-                        LinkId = linkId,
-                        Views = 1,
-                        Clicks = 0,
-                        Date = today
-                    });
-                }
-                else
-                {
-                    analytic.Views += 1;
-                    _context.AnalyticLinks.Update(analytic);
-                }
+                    StaticLinkId = staticLinkId,
+                    Clicks = 0,
+                    Views = 1,
+                    Date = today
+                };
+                _context.AnalyticLinks.Add(analytic);
+            }
+            else
+            {
+                analytic.Views += 1;
             }
 
             await _context.SaveChangesAsync();
         }
 
-        //lay toan bo analytic cua link 
-        public async Task<IEnumerable<AnalyticLink>> GetByLinkIdAsync(string linkId)
+        public async Task<IEnumerable<AnalyticLink>> GetByStaticLinkIdAsync(string staticLinkId)
         {
             return await _context.AnalyticLinks
-           .Where(a => a.LinkId == linkId)
-           .OrderByDescending(a => a.Date)
-           .ToListAsync();
+                .Where(a => a.StaticLinkId == staticLinkId)
+                .OrderByDescending(a => a.Date)
+                .ToListAsync();
         }
 
-        //lay tong click
-        public async Task<int?> GetTotalClicksByLinkAsync(string linkId)
+        public async Task<int?> GetTotalClicksByStaticLinkAsync(string staticLinkId)
         {
             return await _context.AnalyticLinks
-            .Where(a => a.LinkId == linkId)
-            .SumAsync(a => a.Clicks);
+               .Where(a => a.StaticLinkId == staticLinkId)
+               .SumAsync(a => a.Clicks);
         }
 
-        //tong so click cua 1 bio
-        public async Task<int?> GetTotalClicksByPageAsync(string bioPageId)
+        public async Task<int?> GetTotalViewsByStaticLinkAsync(string staticLinkId)
         {
             return await _context.AnalyticLinks
-           .Include(a => a.Link)
-           .Where(a => a.Link.BioPageId == bioPageId)
-           .SumAsync(a => a.Clicks);
+             .Where(a => a.StaticLinkId == staticLinkId)
+             .SumAsync(a => a.Views);
         }
     }
 }

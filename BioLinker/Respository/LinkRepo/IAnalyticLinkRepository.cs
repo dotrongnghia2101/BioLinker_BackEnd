@@ -4,11 +4,11 @@ namespace BioLinker.Respository.LinkRepo
 {
     public interface IAnalyticLinkRepository
     {
-        Task AddOrUpdateClickAsync(string linkId);
-        Task<IEnumerable<AnalyticLink>> GetByLinkIdAsync(string linkId);
-        Task<int?> GetTotalClicksByLinkAsync(string linkId);
-        Task<int?> GetTotalClicksByPageAsync(string bioPageId);
-        Task AddOrUpdatePageViewAsync(string bioPageId);
+        Task AddOrUpdateClickAsync(string staticLinkId);
+        Task AddOrUpdateViewAsync(string staticLinkId);
+        Task<IEnumerable<AnalyticLink>> GetByStaticLinkIdAsync(string staticLinkId);
+        Task<int?> GetTotalClicksByStaticLinkAsync(string staticLinkId);
+        Task<int?> GetTotalViewsByStaticLinkAsync(string staticLinkId);
 
     }
 }
