@@ -9,6 +9,8 @@
         public bool IsPremium { get; set; }
         public string? CreatedBy { get; set; } // FK -> User
         public string Status { get; set; } = string.Empty;
+        public string? Job { get; set; }
+        public string? PreviewImage { get; set; }
         public string? StyleId { get; set; } // FK -> Style
         public string? BackgroundId { get; set; } // FK -> Background
         public string? StyleSettingsId { get; set; } // FK -> StyleSettings

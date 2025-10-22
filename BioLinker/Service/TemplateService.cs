@@ -22,7 +22,9 @@ namespace BioLinker.Service
                 Category = dto.Category,
                 IsPremium = dto.IsPremium,
                 CreatedBy = dto.CreatedBy,
-                Status = "Active"
+                Status = "Active",
+                Job = dto.Job,
+                PreviewImage = dto.PreviewImage,
             };
             await _repo.AddAsync(template);
             return new TemplateResponse
@@ -32,7 +34,9 @@ namespace BioLinker.Service
                 Description = template.Description,
                 Category = template.Category,
                 IsPremium = template.IsPremium,
-                Status = template.Status
+                Status = template.Status,
+                Job = template.Job,
+                PreviewImage = template.PreviewImage,
             };
         }
 
@@ -54,7 +58,9 @@ namespace BioLinker.Service
                 Description = t.Description,
                 Category = t.Category,
                 IsPremium = t.IsPremium,
-                Status = t.Status
+                Status = t.Status,
+                Job = t.Job,
+                PreviewImage = t.PreviewImage
             });
         }
 
@@ -69,7 +75,9 @@ namespace BioLinker.Service
                 Description = t.Description,
                 Category = t.Category,
                 IsPremium = t.IsPremium,
-                Status = t.Status
+                Status = t.Status,
+                Job = t.Job,
+                PreviewImage = t.PreviewImage
             };
         }
 
@@ -83,6 +91,8 @@ namespace BioLinker.Service
             template.Category = dto.Category;
             template.IsPremium = dto.IsPremium;
             template.Status = dto.Status ?? template.Status;
+            template.Job = dto.Job;
+            template.PreviewImage = dto.PreviewImage;
 
             await _repo.UpdateAsync(template);
             return new TemplateResponse
@@ -92,7 +102,9 @@ namespace BioLinker.Service
                 Description = template.Description,
                 Category = template.Category,
                 IsPremium = template.IsPremium,
-                Status = template.Status
+                Status = template.Status,
+                Job = template.Job,
+                PreviewImage = template.PreviewImage
             };
         }
     }
