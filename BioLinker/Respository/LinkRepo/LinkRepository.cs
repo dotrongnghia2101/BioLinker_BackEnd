@@ -41,7 +41,6 @@ namespace BioLinker.Respository.LinkRepo
         public async Task<Link?> GetByIdAsync(string linkId)
         {
             return await _context.Links
-               .Include(l => l.AnalyticLinks)
                .FirstOrDefaultAsync(l => l.LinkId == linkId);
         }
 
