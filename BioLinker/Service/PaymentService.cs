@@ -165,24 +165,27 @@ namespace BioLinker.Service
                     return true;
                 }
 
-                // Xác minh chữ ký và lấy data
+                // ✅ Xác minh chữ ký PayOS
                 WebhookData webhookData = _payos.verifyPaymentWebhookData(webhook);
 
                 long orderCode = webhookData.orderCode;
-                int amount = webhookData.amount;                    // nếu cần
-                string code = webhookData.code;                     // "00" = thành công
+                string code = webhookData.code;
                 _logger.LogInformation("📦 Nhận webhook orderCode={OrderCode}, code={Code}", orderCode, code);
 
-                // Tìm payment trong DB theo orderCode
-                var payment = await _repo.GetByOrderCodeAsync(orderCode.ToString());
+                // ✅ Lấy Payment kèm User + Plan
+                var payment = await _db.Payments
+                    .Include(p => p.User)
+                    .Include(p => p.Plan)
+                    .FirstOrDefaultAsync(p => p.OrderCode == orderCode.ToString());
+
                 if (payment == null)
                 {
-                    _logger.LogWarning("Không tìm thấy đơn hàng orderCode={OrderCode}", orderCode);
+                    _logger.LogWarning("Không tìm thấy Payment orderCode={OrderCode}", orderCode);
                     return false;
                 }
 
-                // Cập nhật trạng thái
-                if (code == "00") // Thanh toan thanh cong
+                // ✅ Xử lý kết quả thanh toán
+                if (code == "00")
                 {
                     payment.Status = "Paid";
                     payment.PaidAt = DateTime.UtcNow;
@@ -192,7 +195,7 @@ namespace BioLinker.Service
 
                     if (user != null && plan != null)
                     {
-                        // Tinh ngay het han
+                        // 👉 Tính ngày hết hạn gói
                         DateTime expireAt = plan.DurationUnit == DurationUnit.Month
                             ? payment.PaidAt.Value.AddMonths(plan.Duration ?? 1)
                             : payment.PaidAt.Value.AddYears(plan.Duration ?? 1);
@@ -200,7 +203,7 @@ namespace BioLinker.Service
                         user.CurrentPlanId = plan.PlanId;
                         user.PlanExpireAt = expireAt;
 
-                        // Map SubscriptionPlan -> RoleName
+                        // 👉 Xác định Role theo gói
                         string roleName = plan.PlanId switch
                         {
                             "PRO-PLAN" => "ProUser",
@@ -208,7 +211,7 @@ namespace BioLinker.Service
                             _ => "FreeUser"
                         };
 
-                        // Tim Role tu DB
+                        // 👉 Lấy Role tương ứng
                         var role = await _db.Roles.FirstOrDefaultAsync(r => r.RoleName == roleName);
                         if (role != null)
                         {
@@ -216,33 +219,40 @@ namespace BioLinker.Service
                             user.UserRoles.Add(new UserRole
                             {
                                 UserId = user.UserId,
-                                RoleId = role.RoleId
+                                RoleId = role.RoleId,
+                                StartDate = DateTime.UtcNow,
+                                EndDate = expireAt
                             });
 
-                            _logger.LogInformation("✅ Gan role {RoleName} cho user {UserId}, han den {ExpireAt}",
+                            _logger.LogInformation("✅ Gán role {RoleName} cho user {UserId} (hết hạn: {ExpireAt})",
                                 roleName, user.UserId, expireAt);
                         }
                         else
                         {
-                            _logger.LogWarning("⚠️ Khong tim thay role tuong ung {RoleName}", roleName);
+                            _logger.LogWarning("⚠️ Không tìm thấy role {RoleName}", roleName);
                         }
+
+                        // 👉 Lưu cả User và Payment cùng lúc
+                        _db.Users.Update(user);
+                        _db.Payments.Update(payment);
+                        await _db.SaveChangesAsync();
                     }
                 }
                 else
                 {
                     payment.Status = "Failed";
+                    _db.Payments.Update(payment);
+                    await _db.SaveChangesAsync();
                 }
-
-                await _repo.UpdateAsync(payment);
-                await _db.SaveChangesAsync();
 
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Loi xu ly webhook PayOS");
+                _logger.LogError(ex, "❌ Lỗi xử lý webhook PayOS");
                 return false;
             }
         }
+    }
     }
 }
