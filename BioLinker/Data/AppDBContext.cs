@@ -801,10 +801,10 @@ namespace BioLinker.Data
                       .HasMaxLength(255)
                       .IsRequired();
 
-                entity.Property(e => e.TemplateId)
-                      .HasColumnName("templateID")
-                      .HasMaxLength(255)
-                      .IsRequired();
+                entity.Property(e => e.TemplateIdsJson)
+                       .HasColumnName("templateIdsJson")  // 👈 đổi tên khác hoàn toàn
+                       .HasColumnType("longtext")         // 👈 an toàn hơn với MySQL
+                       .IsRequired();
 
             });
 
