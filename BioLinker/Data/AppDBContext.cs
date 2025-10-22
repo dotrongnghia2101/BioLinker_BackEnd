@@ -284,10 +284,8 @@ namespace BioLinker.Data
                       .HasName("PK_AnalyticLink");
                 entity.Property(e => e.AnalyticsId)
                       .HasColumnName("analyticsID");
-                entity.Property(e => e.LinkId)
-                      .HasColumnName("linkID");
-                entity.Property(e => e.BioPageId)
-                      .HasColumnName("bioPageID");
+                entity.Property(e => e.StaticLinkId)
+                      .HasColumnName("staticLinkID");
                 entity.Property(e => e.Views)
                       .HasColumnName("views");
                 entity.Property(e => e.Clicks)
@@ -296,17 +294,10 @@ namespace BioLinker.Data
                       .HasColumnType("datetime")
                       .HasColumnName("date");
 
-                entity.HasOne(al => al.Link)
-                      .WithMany(l => l.AnalyticLinks)
-                      .HasForeignKey(al => al.LinkId)
-                      .HasConstraintName("FK_AnalyticLink_Link")
-                      .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(al => al.BioPage)
-                      .WithMany(bp => bp.AnalyticLinks)
-                      .HasForeignKey(al => al.BioPageId)
-                      .HasConstraintName("FK_AnalyticLink_BioPage")
-                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(a => a.StaticLink)
+                       .WithMany(s => s.AnalyticLinks)
+                       .HasForeignKey(a => a.StaticLinkId)
+                       .OnDelete(DeleteBehavior.SetNull);
             });
 
             // ========== CONTENT ==========

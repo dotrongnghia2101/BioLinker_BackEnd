@@ -14,6 +14,5 @@
 
         // Navigation
         public virtual BioPage? BioPage { get; set; }
-        public virtual ICollection<AnalyticLink> AnalyticLinks { get; set; } = new List<AnalyticLink>();
     }
 }
