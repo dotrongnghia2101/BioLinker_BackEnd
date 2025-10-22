@@ -1,6 +1,8 @@
-﻿using BioLinker.DTO.PaymentDTO;
+﻿using BioLinker.Data;
+using BioLinker.DTO.PaymentDTO;
 using BioLinker.Enities;
 using BioLinker.Respository.PaymentRepo;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Net.payOS;
 using Net.payOS.Types;
@@ -13,12 +15,25 @@ namespace BioLinker.Service
         private readonly IPaymentRepository _repo;
         private readonly PayOS _payos;
         private readonly ILogger<PaymentService> _logger;
+        private readonly AppDBContext _db;
+        private readonly string _returnUrl;
+        private readonly string _cancelUrl;
 
-        public PaymentService(IPaymentRepository repo, PayOS payos, ILogger<PaymentService> logger)
+        public PaymentService(
+             IPaymentRepository repo,
+             PayOS payos,
+             ILogger<PaymentService> logger,
+             AppDBContext db,
+             IConfiguration config)
         {
             _repo = repo;
             _payos = payos;
             _logger = logger;
+            _db = db;
+
+            // Doc returnUrl & cancelUrl tu appsettings.json
+            _returnUrl = config["PayOSSettings:ReturnUrl"] ?? "https://biolinker.io.vn/account";
+            _cancelUrl = config["PayOSSettings:CancelUrl"] ?? "https://biolinker.io.vn/account";
         }
 
         public async Task<PayOSResponse> CreatePaymentAsync(PayOSRequest dto)
@@ -29,7 +44,7 @@ namespace BioLinker.Service
 
                 var items = new List<ItemData>
                 {
-                    new ItemData(dto.ItemName ?? "Gói BioLink Pro", 1, (int)dto.Amount)
+                    new ItemData(dto.ItemName ?? "Goi su dung", 1, (int)dto.Amount)
                 };
 
                 var paymentData = new PaymentData(
@@ -37,8 +52,8 @@ namespace BioLinker.Service
                     (int)dto.Amount,
                     dto.Description,
                     items,
-                    dto.CancelUrl,
-                    dto.ReturnUrl
+                    cancelUrl: _cancelUrl,
+                    returnUrl: _returnUrl
                 );
 
                 _logger.LogInformation(" Gửi yêu cầu PayOS: {data}", paymentData);
@@ -167,10 +182,51 @@ namespace BioLinker.Service
                 }
 
                 // Cập nhật trạng thái
-                if (code == "00")
+                if (code == "00") // Thanh toan thanh cong
                 {
                     payment.Status = "Paid";
                     payment.PaidAt = DateTime.UtcNow;
+
+                    var user = payment.User;
+                    var plan = payment.Plan;
+
+                    if (user != null && plan != null)
+                    {
+                        // Tinh ngay het han
+                        DateTime expireAt = plan.DurationUnit == DurationUnit.Month
+                            ? payment.PaidAt.Value.AddMonths(plan.Duration ?? 1)
+                            : payment.PaidAt.Value.AddYears(plan.Duration ?? 1);
+
+                        user.CurrentPlanId = plan.PlanId;
+                        user.PlanExpireAt = expireAt;
+
+                        // Map SubscriptionPlan -> RoleName
+                        string roleName = plan.PlanId switch
+                        {
+                            "PRO-PLAN" => "ProUser",
+                            "BUSINESS-PLAN" => "BusinessUser",
+                            _ => "FreeUser"
+                        };
+
+                        // Tim Role tu DB
+                        var role = await _db.Roles.FirstOrDefaultAsync(r => r.RoleName == roleName);
+                        if (role != null)
+                        {
+                            user.UserRoles.Clear();
+                            user.UserRoles.Add(new UserRole
+                            {
+                                UserId = user.UserId,
+                                RoleId = role.RoleId
+                            });
+
+                            _logger.LogInformation("✅ Gan role {RoleName} cho user {UserId}, han den {ExpireAt}",
+                                roleName, user.UserId, expireAt);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("⚠️ Khong tim thay role tuong ung {RoleName}", roleName);
+                        }
+                    }
                 }
                 else
                 {
@@ -178,13 +234,13 @@ namespace BioLinker.Service
                 }
 
                 await _repo.UpdateAsync(payment);
-                _logger.LogInformation("Cập nhật trạng thái thanh toán {OrderCode} → {Status}", orderCode, payment.Status);
+                await _db.SaveChangesAsync();
 
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi xử lý webhook PayOS");
+                _logger.LogError(ex, "❌ Loi xu ly webhook PayOS");
                 return false;
             }
         }

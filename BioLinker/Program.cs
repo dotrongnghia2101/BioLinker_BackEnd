@@ -49,7 +49,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<ITemplateService, TemplateService>();
-builder.Services.AddScoped<IBackgroundService, BioLinker.Service.BackgroundService>();
+builder.Services.AddScoped<IBackgroundService, BioLinker.Service.BaseBackgroundService>();
 builder.Services.AddScoped<IStyleService, StyleService>();
 builder.Services.AddScoped<IContentService, ContentService>();
 builder.Services.AddScoped<IStyleSettingsService, StyleSettingsService>();
@@ -67,6 +67,7 @@ builder.Services.AddScoped<IUserTemplateService, UserTemplateService>();
 builder.Services.AddScoped<IMarketplaceService, MarketplaceService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<ICollectionService, CollectionService>();
+builder.Services.AddHostedService<SubscriptionMonitorService>();
 
 //==================== CAU HINH REPOSITORY ====================
 builder.Services.AddScoped<IUserRepository, UserRepository>();

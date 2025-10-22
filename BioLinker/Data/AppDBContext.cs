@@ -99,6 +99,13 @@ namespace BioLinker.Data
                 entity.Property(e => e.BackgroundImage)
                      .HasMaxLength(500)
                      .HasColumnName("backgroundImage");
+                entity.Property(e => e.CurrentPlanId)
+                       .HasMaxLength(50)
+                       .HasColumnName("currentPlanId");
+
+                entity.Property(e => e.PlanExpireAt)
+                    .HasColumnType("datetime")
+                    .HasColumnName("planExpireAt");
             });
 
             // ========== ROLE ==========

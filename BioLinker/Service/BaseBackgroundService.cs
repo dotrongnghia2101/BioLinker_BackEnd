@@ -5,10 +5,10 @@ using BioLinker.Respository.BioPageRepo;
 
 namespace BioLinker.Service
     {
-        public class BackgroundService : IBackgroundService
+        public class BaseBackgroundService : IBackgroundService
         {
             private readonly IBackgroundRepository _repo;
-            public BackgroundService(IBackgroundRepository repo)
+            public BaseBackgroundService(IBackgroundRepository repo)
             {
                 _repo = repo;
             }

@@ -17,5 +17,7 @@
         public string? NickName { get; set; }
         public bool? IsBeginner { get; set; }
         public string? BackgroundImage { get; set; }
+        public string? CurrentPlanId { get; set; } // luu ma goi hien tai (FREE-PLAN, PRO-PLAN, ...)
+        public DateTime? PlanExpireAt { get; set; } // thoi gian het han goi
     }
 }

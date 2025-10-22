@@ -50,7 +50,9 @@ namespace BioLinker.Service
                 IsActive = true,
                 IsGoogle = false,
                 IsBeginner = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                CurrentPlanId = "FREE-PLAN",
+                PlanExpireAt = null,
             };
 
             // Gán role mặc định FreeUser
@@ -113,6 +115,8 @@ namespace BioLinker.Service
                 NickName = user.NickName,
                 IsBeginner = user.IsBeginner,
                 BackgroundImage = user.BackgroundImage,
+                PlanExpireAt = user.PlanExpireAt,
+                CurrentPlanId = user.CurrentPlanId
             };       
         }
 
@@ -147,6 +151,8 @@ namespace BioLinker.Service
                     CreatedAt = DateTime.Now,
                     IsGoogle = true,
                     IsBeginner = true,
+                    CurrentPlanId = "FREE-PLAN",
+                    PlanExpireAt = null,
                 };
 
                 await _userRepository.AddUserAsync(newUser);
@@ -189,6 +195,10 @@ namespace BioLinker.Service
                 NickName = existingUser.NickName,
                 UserImage = existingUser.UserImage,
                 BackgroundImage = existingUser.BackgroundImage,
+                CurrentPlanId = existingUser.CurrentPlanId,
+                PlanExpireAt = existingUser.PlanExpireAt,
+                DateOfBirth = existingUser.DateOfBirth,
+                Job = existingUser.Job,
             };
         }
 
@@ -234,6 +244,8 @@ namespace BioLinker.Service
                 IsGoogle = user.IsGoogle,
                 IsBeginner = user.IsBeginner,
                 BackgroundImage = user.BackgroundImage,
+                CurrentPlanId = user.CurrentPlanId,
+                PlanExpireAt = user.PlanExpireAt,
             };
         }
 
@@ -258,6 +270,8 @@ namespace BioLinker.Service
                 DateOfBirth = request.DateOfBirth,
                 IsGoogle = false,
                 IsBeginner = true,
+                CurrentPlanId = "FREE-PLAN",
+                PlanExpireAt = null,
             };
             //hash password
             user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);

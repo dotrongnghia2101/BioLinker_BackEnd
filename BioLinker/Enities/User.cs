@@ -23,6 +23,8 @@ namespace BioLinker.Enities
         public string? CustomerDomain { get; set; } 
         public bool? IsBeginner { get; set; } = true;
         public string? BackgroundImage { get; set; }
+        public string? CurrentPlanId { get; set; } // luu ma goi hien tai (FREE-PLAN, PRO-PLAN, ...)
+        public DateTime? PlanExpireAt { get; set; } // thoi gian het han goi
 
         // Navigation
         //public virtual ICollection<SubscriptionPlan> Subscriptions { get; set; } = new List<SubscriptionPlan>();
