@@ -2,13 +2,10 @@
 {
     public class PayOSRequest
     {
-        public long OrderCode { get; set; } 
         public int Amount { get; set; }
         public string Description { get; set; } = string.Empty;
-        public string ReturnUrl { get; set; } = string.Empty;
-        public string CancelUrl { get; set; } = string.Empty;
         public string? UserId { get; set; } = string.Empty;
         public string? PlanId { get; set; }
-        public string ItemName { get; set; }
+        public string? ItemName { get; set; }
     }
 }

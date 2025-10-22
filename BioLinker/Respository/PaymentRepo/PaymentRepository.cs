@@ -28,7 +28,11 @@ namespace BioLinker.Respository.PaymentRepo
 
         public async Task<Payment?> GetByOrderCodeAsync(string orderCode)
         {
-            return await _db.Payments.FirstOrDefaultAsync(p => p.OrderCode == orderCode);
+            return await _db.Payments
+                .Include(p => p.Plan)                       // load goi dang ky
+                .Include(p => p.User)                       // load thong tin user
+                .ThenInclude(u => u.UserRoles)          // load role hien tai cua user
+                .FirstOrDefaultAsync(p => p.OrderCode == orderCode);
         }
 
         public async Task<IEnumerable<Payment>> GetPaymentsByUserAsync(string userId)
