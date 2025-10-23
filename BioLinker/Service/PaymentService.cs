@@ -175,6 +175,7 @@ namespace BioLinker.Service
                 // ✅ Lấy Payment kèm User + Plan
                 var payment = await _db.Payments
                     .Include(p => p.User)
+                    .ThenInclude(u => u.UserRoles)
                     .Include(p => p.Plan)
                     .FirstOrDefaultAsync(p => p.OrderCode == orderCode.ToString());
 
@@ -215,14 +216,27 @@ namespace BioLinker.Service
                         var role = await _db.Roles.FirstOrDefaultAsync(r => r.RoleName == roleName);
                         if (role != null)
                         {
-                            user.UserRoles.Clear();
-                            user.UserRoles.Add(new UserRole
+                            var oldRoles = await _db.UserRoles
+                                            .Where(ur => ur.UserId == user.UserId)
+                                            .ToListAsync();
+
+                            if (oldRoles.Any())
                             {
+                                _db.UserRoles.RemoveRange(oldRoles);
+                                _logger.LogInformation("🧹 Đã xóa {Count} role cũ của user {UserId}", oldRoles.Count, user.UserId);
+                            }
+
+                            // 🔥 Gán role mới theo gói
+                            var newUserRole = new UserRole
+                            {
+                                UserRoleId = Guid.NewGuid().ToString(),
                                 UserId = user.UserId,
                                 RoleId = role.RoleId,
                                 StartDate = DateTime.UtcNow,
                                 EndDate = expireAt
-                            });
+                            };
+
+                            await _db.UserRoles.AddAsync(newUserRole);
 
                             _logger.LogInformation("✅ Gán role {RoleName} cho user {UserId} (hết hạn: {ExpireAt})",
                                 roleName, user.UserId, expireAt);
@@ -231,11 +245,13 @@ namespace BioLinker.Service
                         {
                             _logger.LogWarning("⚠️ Không tìm thấy role {RoleName}", roleName);
                         }
-
-                        // 👉 Lưu cả User và Payment cùng lúc
+                        // 👉 Cập nhật và lưu lại tất cả thay đổi
                         _db.Users.Update(user);
                         _db.Payments.Update(payment);
                         await _db.SaveChangesAsync();
+
+                        // 👉 Load lại user.UserRoles để đồng bộ entity
+                        await _db.Entry(user).Collection(u => u.UserRoles).LoadAsync();
                     }
                 }
                 else

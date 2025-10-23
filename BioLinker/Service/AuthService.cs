@@ -93,17 +93,25 @@ namespace BioLinker.Service
 
         public async Task<UserProfileResponse?> GetUserProfileAsync(string userId)
         {
-            var user = await _userRepository.GetByIdAsync(userId);
-            if (user == null) return null;
+            var user = await _appDBContext.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
 
-            var role = user.UserRoles.FirstOrDefault()?.Role?.RoleName ?? "FreeUser";
+            if (user == null)
+                return null;
+
+            // 🔥 Lấy role mới nhất (theo StartDate hoặc EndDate)
+            var latestRole = user.UserRoles
+                .OrderByDescending(ur => ur.StartDate)
+                .FirstOrDefault()?.Role?.RoleName ?? "FreeUser";
 
             return new UserProfileResponse
             {
                 UserId = user.UserId,
                 FullName = user.FullName,
                 Email = user.Email,
-                Role = role,
+                Role = latestRole, // ✅ lấy chính xác role mới nhất
                 PhoneNumber = user.PhoneNumber,
                 Gender = user.Gender,
                 UserImage = user.UserImage,
@@ -117,7 +125,7 @@ namespace BioLinker.Service
                 BackgroundImage = user.BackgroundImage,
                 PlanExpireAt = user.PlanExpireAt,
                 CurrentPlanId = user.CurrentPlanId
-            };       
+            };
         }
 
         //login google
