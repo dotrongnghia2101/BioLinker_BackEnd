@@ -21,8 +21,17 @@ namespace BioLinker.Controller.Collections
         public async Task<IActionResult> GetUserCollections(string userId)
         {
             var collection = await _service.GetCollectionByUserAsync(userId);
+
             if (collection == null)
-                return NotFound("User chưa có collection.");
+            {
+                return Ok(new
+                {
+                    collectionId = (string?)null,
+                    userId = userId,
+                    templates = new List<string>() // mảng trống
+                });
+            }
+
 
             return Ok(new
             {
