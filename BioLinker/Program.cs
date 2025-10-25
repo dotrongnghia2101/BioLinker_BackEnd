@@ -28,6 +28,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+builder.Services.AddSignalR();
+
 // ==================== CAU HINH PAYOS ====================
 builder.Services.AddSingleton(sp =>
 {
@@ -89,6 +91,7 @@ builder.Services.AddScoped<IUserTemplateRepository,UserTemplateRepository>();
 builder.Services.AddScoped<IMarketplaceRepository, MarketplaceRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<ICollectionRepository, CollectionRepository>();
+builder.Services.AddScoped<IAnalyticLinkClickRepository, AnalyticLinkClickRepository>();
 
 // ==================== AUTHENTICATION (JWT + FACEBOOK) ====================
 builder.Services.AddAuthentication(options =>

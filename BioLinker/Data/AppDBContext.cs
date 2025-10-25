@@ -32,6 +32,7 @@ namespace BioLinker.Data
         public virtual DbSet<CountBioClicked> CountBioClickeds { get; set; }
         public virtual DbSet<CountTemplateClicked> CountTemplateClickeds { get; set; }
         public DbSet<Collection> Collections { get; set; }
+        public DbSet<AnalyticLinkClick> AnalyticLinkClicks { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -821,6 +822,24 @@ namespace BioLinker.Data
                        .HasColumnType("longtext")         // 👈 an toàn hơn với MySQL
                        .IsRequired();
 
+            });
+
+            // ========== ANALYTIC LINK CLICK ==========
+            modelBuilder.Entity<AnalyticLinkClick>(entity =>
+            {
+                entity.HasKey(x => x.ClickId);
+
+                entity.HasOne(x => x.StaticLink)
+                    .WithMany() // Neu sau nay can co ICollection<AnalyticLinkClick> trong StaticLink thi them vao
+                    .HasForeignKey(x => x.StaticLinkId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.Property(x => x.CreatedAt)
+                    .HasConversion(
+                        v => v,
+                        v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+                entity.HasIndex(x => new { x.StaticLinkId, x.CreatedAt });
             });
 
 

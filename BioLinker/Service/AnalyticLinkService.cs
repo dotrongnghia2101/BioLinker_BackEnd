@@ -11,11 +11,21 @@ namespace BioLinker.Service
 
         private readonly IAnalyticLinkRepository _repo;
         private readonly IHubContext<AnalyticsHub> _hub;
+        private readonly IAnalyticLinkClickRepository _clickRepo;
 
-        public AnalyticLinkService(IAnalyticLinkRepository repo, IHubContext<AnalyticsHub> hub)
+        public AnalyticLinkService(
+            IAnalyticLinkRepository repo,
+            IAnalyticLinkClickRepository clickRepo,
+            IHubContext<AnalyticsHub> hub)
         {
             _repo = repo;
+            _clickRepo = clickRepo;
             _hub = hub;
+        }
+
+        public async Task<IEnumerable<AnalyticLinkClick>> GetAllClickAsync()
+        {
+            return await _clickRepo.GetAllAsync();
         }
 
         public async Task<IEnumerable<AnalyticLinkResponse>> GetAnalyticsByStaticLinkAsync(string staticLinkId)
@@ -30,6 +40,16 @@ namespace BioLinker.Service
                 Clicks = a.Clicks,
                 Date = a.Date
             }).ToList();
+        }
+
+        public async Task<IEnumerable<AnalyticLinkClick>> GetClickDetailsAsync(string staticLinkId, DateTime? fromUtc = null, DateTime? toUtc = null)
+        {
+            return await _clickRepo.GetByStaticLinkAsync(staticLinkId, fromUtc, toUtc);
+        }
+
+        public async Task<IEnumerable<AnalyticLinkClick>> GetClickDetailsByUserAsync(string userId)
+        {
+            return await _clickRepo.GetByUserIdAsync(userId);
         }
 
         public async Task<int?> GetTotalClicksByStaticLinkAsync(string staticLinkId)
@@ -53,12 +73,18 @@ namespace BioLinker.Service
                  });
         }
 
+        // Cap nhat tong + luu chi tiet click
         public async Task RecordClickAsync(string staticLinkId)
         {
+            // (1) Cap nhat bang tong hop theo ngay
             await _repo.AddOrUpdateClickAsync(staticLinkId);
+
+            // (2) Luu chi tiet vao bang AnalyticLinkClick
+            await _clickRepo.AddAsync(staticLinkId);
 
             var total = await _repo.GetTotalClicksByStaticLinkAsync(staticLinkId);
 
+            // (3) Gui realtime (neu co client ket noi)
             await _hub.Clients.Group($"static_{staticLinkId}")
                 .SendAsync("ReceiveClickUpdate", new
                 {
