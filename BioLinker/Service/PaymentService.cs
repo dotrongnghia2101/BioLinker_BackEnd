@@ -269,5 +269,54 @@ namespace BioLinker.Service
                 return false;
             }
         }
+
+        public async Task<bool> UpgradeToProPlanAsync(string userId)
+        {
+            var user = await _db.Users
+                       .Include(u => u.UserRoles)
+                       .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            if (user == null)
+                throw new Exception("Không tìm thấy người dùng");
+
+            var proPlan = await _db.SubscriptionPlans.FirstOrDefaultAsync(p => p.PlanId == "PRO-PLAN");
+            if (proPlan == null)
+                throw new Exception("Không tìm thấy gói Pro");
+
+            var role = await _db.Roles.FirstOrDefaultAsync(r => r.RoleName == "ProUser");
+            if (role == null)
+                throw new Exception("Không tìm thấy role ProUser");
+
+            // Tính thời gian hết hạn
+            DateTime startDate = DateTime.UtcNow;
+            DateTime expireAt = startDate.AddMonths(1);
+
+            // Gán plan mới
+            user.CurrentPlanId = proPlan.PlanId;
+            user.PlanExpireAt = expireAt;
+
+            // Xóa role cũ
+            var oldRoles = user.UserRoles.ToList();
+            if (oldRoles.Any())
+                _db.UserRoles.RemoveRange(oldRoles);
+
+            // Gán role ProUser
+            var newRole = new UserRole
+            {
+                UserRoleId = Guid.NewGuid().ToString(),
+                UserId = user.UserId,
+                RoleId = role.RoleId,
+                StartDate = startDate,
+                EndDate = expireAt
+            };
+            await _db.UserRoles.AddAsync(newRole);
+
+            await _db.SaveChangesAsync();
+
+            _logger.LogInformation("✅ Nâng cấp user {UserId} lên ProUser, hết hạn: {ExpireAt}", userId, expireAt);
+
+            return true;
+        }
     }
     }
+    

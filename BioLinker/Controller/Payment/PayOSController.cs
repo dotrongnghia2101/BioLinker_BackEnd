@@ -125,5 +125,23 @@ namespace BioLinker.Controller.Payment
             return Ok(result);
         }
 
+        [HttpPost("upgrade-to-pro")]
+        public async Task<IActionResult> UpgradeToPro([FromBody] UpgradePlanRequest request)
+        {
+            try
+            {
+                bool ok = await _paymentService.UpgradeToProPlanAsync(request.UserId);
+                if (ok)
+                    return Ok(new { message = "Đã nâng cấp người dùng lên ProUser trong 1 tháng" });
+
+                return BadRequest(new { message = "Không thể nâng cấp người dùng" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Lỗi khi nâng cấp user {UserId} lên Pro", request.UserId);
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
     }
 }

@@ -10,5 +10,6 @@ namespace BioLinker.Service
         Task<bool> HandleWebhookAsync(string body);
         Task<IEnumerable<PaymentResponse>> GetPaymentsByUserAsync(string userId);
         Task<IEnumerable<PaymentResponse>> GetAllPaymentsAsync();
+        Task<bool> UpgradeToProPlanAsync(string userId);
     }
 }
