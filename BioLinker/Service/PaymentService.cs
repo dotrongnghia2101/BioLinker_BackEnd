@@ -3,6 +3,7 @@ using BioLinker.DTO.PaymentDTO;
 using BioLinker.Enities;
 using BioLinker.Respository.PaymentRepo;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Net.payOS;
 using Net.payOS.Types;
@@ -18,13 +19,15 @@ namespace BioLinker.Service
         private readonly AppDBContext _db;
         private readonly string _returnUrl;
         private readonly string _cancelUrl;
+        private readonly IEmailSender _emailSender;
 
         public PaymentService(
              IPaymentRepository repo,
              PayOS payos,
              ILogger<PaymentService> logger,
              AppDBContext db,
-             IConfiguration config)
+             IConfiguration config,
+             IEmailSender emailSender)
         {
             _repo = repo;
             _payos = payos;
@@ -34,6 +37,7 @@ namespace BioLinker.Service
             // Doc returnUrl & cancelUrl tu appsettings.json
             _returnUrl = config["PayOSSettings:ReturnUrl"] ?? "https://biolinker.io.vn/account";
             _cancelUrl = config["PayOSSettings:CancelUrl"] ?? "https://biolinker.io.vn/account";
+            _emailSender = emailSender;
         }
 
         public async Task<PayOSResponse> CreatePaymentAsync(PayOSRequest dto)
@@ -252,6 +256,25 @@ namespace BioLinker.Service
 
                         // 👉 Load lại user.UserRoles để đồng bộ entity
                         await _db.Entry(user).Collection(u => u.UserRoles).LoadAsync();
+
+                        // 📧 Gửi email thông báo thanh toán thành công
+                        try
+                        {
+                            if (!string.IsNullOrEmpty(user.Email))
+                            {
+                                await _emailSender.SendPaymentSuccessEmailAsync(
+                                    user.Email,
+                                    plan.PlanName ?? "Pro",
+                                    user.PlanExpireAt ?? DateTime.UtcNow.AddMonths(1)
+                                );
+
+                                _logger.LogInformation("📧 Đã gửi email xác nhận thanh toán thành công cho {Email}", user.Email);
+                            }
+                        }
+                        catch (Exception mailEx)
+                        {
+                            _logger.LogError(mailEx, "⚠️ Lỗi khi gửi email thông báo thanh toán cho user {UserId}", user.UserId);
+                        }
                     }
                 }
                 else
@@ -312,6 +335,8 @@ namespace BioLinker.Service
             await _db.UserRoles.AddAsync(newRole);
 
             await _db.SaveChangesAsync();
+            // Gửi email thông báo nâng cấp
+            await _emailSender.SendUpgradeToProEmailAsync(user.Email, user.FirstName ?? "Người dùng", expireAt);
 
             _logger.LogInformation("✅ Nâng cấp user {UserId} lên ProUser, hết hạn: {ExpireAt}", userId, expireAt);
 

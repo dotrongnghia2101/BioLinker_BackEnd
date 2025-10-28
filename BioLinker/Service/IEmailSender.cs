@@ -6,5 +6,7 @@ namespace BioLinker.Service
     {
         Task SendEmailAsync(string email, string subject, string htmlMessage);
         Task<string> SendConfirmationEmailAsync(string email, string code);
+        Task SendPaymentSuccessEmailAsync(string email, string planName, DateTime expireAt);
+        Task SendUpgradeToProEmailAsync(string email, string userName, DateTime expireAt);
     }
 }
