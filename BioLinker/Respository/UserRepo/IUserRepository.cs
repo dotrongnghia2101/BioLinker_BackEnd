@@ -14,5 +14,7 @@ namespace BioLinker.Respository.UserRepo
 
         // Lay custom domain theo userId
         Task<string?> GetCustomDomainByUserIdAsync(string userId);
+
+        Task<List<string>> GetAllEmailsAsync();
     }
 }
