@@ -19,5 +19,6 @@ namespace BioLinker.Service
 
         Task<List<string>> GetAllCustomDomainNamesAsync();
         Task<string?> GetCustomDomainByUserIdAsync(string userId);
+        Task<List<string>> GetAllUserEmailsAsync();
     }
 }

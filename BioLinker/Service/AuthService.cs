@@ -81,6 +81,11 @@ namespace BioLinker.Service
             return await _userRepository.GetAllCustomDomainNamesAsync();
         }
 
+        public async Task<List<string>> GetAllUserEmailsAsync()
+        {
+            return await _userRepository.GetAllEmailsAsync();
+        }
+
         public async Task<string?> GetCustomDomainByUserIdAsync(string userId)
         {
             return await _userRepository.GetCustomDomainByUserIdAsync(userId);

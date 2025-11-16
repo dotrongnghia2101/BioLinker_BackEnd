@@ -27,6 +27,15 @@ namespace BioLinker.Respository.UserRepo
                 .ToListAsync();
         }
 
+        public async Task<List<string>> GetAllEmailsAsync()
+        {
+            return await _context.Users
+               .Where(u => u.Email != null && u.Email != "")
+               .Select(u => u.Email!)
+               .Distinct()
+               .ToListAsync();
+        }
+
         public async Task<IEnumerable<EntityUser>> GetAllUsersAsync()
         {
             return await _context.Users.ToListAsync();

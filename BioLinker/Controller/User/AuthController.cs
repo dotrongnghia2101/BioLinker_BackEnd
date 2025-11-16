@@ -38,6 +38,19 @@ namespace BioLinker.Controllers.User
             return Ok(userProfile);
         }
 
+        [HttpGet("emails")]
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllUserEmails()
+        {
+            var emails = await _authService.GetAllUserEmailsAsync();
+            return Ok(new
+            {
+                success = true,
+                total = emails.Count,
+                emails
+            });
+        }
+
         [HttpGet("domains")]
         public async Task<IActionResult> GetCustomDomains([FromQuery] string? userId)
         {
